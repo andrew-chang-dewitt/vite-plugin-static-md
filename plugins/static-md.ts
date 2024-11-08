@@ -6,7 +6,7 @@
  * Features:
  *
  * - [x] Dev server w/ HMR for live updates as you edit markdown files.
- * - [ ] Build outputs static index.html files from markdown files, matching the source file tree.
+ * - [x] Build outputs static index.html files from markdown files, matching the source file tree.
  * - [ ] Customize output of...
  *   - [ ] ...html using html template files.
  *   - [ ] ...markdown rendering using custom markdown renderer functions.
@@ -19,14 +19,7 @@ import { ParsedPath, parse, resolve } from "path"
 
 import { JSDOM } from "jsdom"
 import { marked } from "marked"
-import {
-  Plugin,
-  PreviewServer,
-  UserConfig,
-  ViteDevServer,
-  createFilter,
-  send,
-} from "vite"
+import { Plugin, PreviewServer, UserConfig, ViteDevServer, send } from "vite"
 import type { Connect } from "vite"
 
 const HTML_TEMPLATE = `\
@@ -51,7 +44,7 @@ export default function staticMd(opts: Options): Plugin[] {
   let paths: string[] = []
   let pages: Record<string, Page> = {}
 
-  let filter = createFilter("**/*.md")
+  let filter: (id: unknown) => boolean
 
   return [
     {
@@ -72,7 +65,41 @@ export default function staticMd(opts: Options): Plugin[] {
 
         // walk filetree at root & get absolute paths to every markdown file
         paths = await getPaths(root)
-        pages = await getPages(paths, root)
+        pages = await getPages(paths, root, "dev")
+
+        // we don't need to alter config in dev mode--vite doesn't care about
+        // rollup input options anyways
+        return userConfig
+      },
+
+      // configure custom middleware to point urls matching `pages` to their
+      // markdown sources & transform those sources into index.html files
+      configureServer(server) {
+        server.middlewares.use(indexMdMiddleware(root, pages, server))
+      },
+    },
+    {
+      name: "static-md-plugin:build",
+      apply: "build",
+
+      // edit user config to add all markdown files as rollup entry points
+      async config(userConfig): Promise<UserConfig> {
+        // ensure a root is specified so URIs can be build for output destinations
+        let cfgRoot = opts.root || userConfig.root
+        if (cfgRoot) {
+          root = cfgRoot
+        } else {
+          throw Error(
+            "Root must be defined in vite config or in plugin options",
+          )
+        }
+
+        // walk filetree at root & get absolute paths to every markdown file
+        paths = await getPaths(root)
+        pages = await getPages(paths, root, "build")
+        console.log("pages parsed & indexed")
+        console.dir(pages)
+        filter = (id) => Object.keys(pages).includes(id as string)
 
         return {
           build: {
@@ -84,79 +111,29 @@ export default function staticMd(opts: Options): Plugin[] {
         }
       },
 
-      // TODO: try to emit markdown files into build?
-      // UPDATE: looks like `this.emit` is ignored during dev mode
-      //         might need to split this plugin into :build & :serve variants
-      // buildStart(options) {
-      //   console.log("buildStart(...)")
-      //   console.log(dir(options))
-      //   for (const page of Object.values(pages)) {
-      //     const { id } = page
-      //     console.log(`emitting ${id}`)
-      //     this.emitFile({
-      //       type: "chunk",
-      //       id,
-      //     })
-      //   }
-      // },
-
-      // configure custom middleware to point urls matching `pages` to their
-      // markdown sources & transform those sources into index.html files
-      configureServer(server) {
-        server.middlewares.use(indexMdMiddleware(root, pages, server))
+      resolveId(src: string) {
+        console.log(`resolving ${src}`)
+        // sources not in pages map are skipped
+        if (!filter(src)) return null
+        // ensure sources given in pages map are resolved,
+        // even if the file doesn't exist
+        return src
       },
 
-      // async transformIndexHtml(html, ctx): Promise<string> {
-      //   console.log(
-      //     `transformIndexHtml(...) transforming ${ctx.filename} for request at ${ctx.path}`,
-      //   )
-      //   console.log(dir(html))
+      async load(id: string) {
+        console.log(`loading ${id}`)
+        // ids not in pages map are skipped
+        if (!filter(id)) return null
 
-      //   return html
-      // },
+        const { md } = pages[id]
+        console.log(`loaded ${id}:`)
+        const res = {
+          code: await mdToStaticHtml(md),
+        }
+        console.dir(res)
 
-      // async resolveId(source, importer, options) {
-      //   console.log(`resolveId(...) resolving ${source} with`)
-      //   console.log(dir(importer))
-      //   console.log(dir(options))
-      // },
-
-      // // then, allow loading markdown files as entry points hopefully?
-      // async load(id) {
-      //   console.log(`load(...) loading ${id}...`)
-      //   if (!filter(id)) return null
-
-      //   const contents = await readFile(id, { encoding: "utf8" })
-      //   console.log(`loaded ${id}:`)
-      //   console.log(dir({ code: contents }))
-
-      //   return {
-      //     code: contents,
-      //   }
-      // },
-
-      // and transform md files to html string
-      // async transform(code, id) {
-      //   console.log(`transform(...) transforming ${id}...`)
-      //   if (!filter(id)) return null
-      //   console.log("from:")
-      //   console.log(dir(code))
-
-      //   console.log(`moduleInfo(${id})`)
-      //   let info = this.getModuleInfo(id)
-      //   console.log(dir(info))
-
-      //   const asHtml = await marked(code)
-      //   const DOM = new JSDOM(HTML_TEMPLATE)
-      //   const document = DOM.window.document
-      //   const targetNode = document.querySelector("#markdown-target")
-      //   targetNode.innerHTML = asHtml
-
-      //   let res = "<!doctype html>\n" + document.documentElement.outerHTML
-      //   console.log("to:")
-      //   console.log(dir(res))
-      //   return res
-      // },
+        return res
+      },
     },
   ]
 }
@@ -187,17 +164,20 @@ interface Page {
   id: string
   md: string
   url: string
+  inputKey: string
 }
 
 async function getPages(
   paths: string[],
   root: string,
+  mode: "dev" | "build",
 ): Promise<Record<string, Page>> {
-  let pages = {}
+  let pages: Record<string, Page> = {}
+  let key: "url" | "id" = mode === "dev" ? "url" : "id"
 
   for (const path of paths) {
     const page = await buildPage(path, root)
-    pages[page.url] = page
+    pages[page[key]] = page
   }
 
   return pages
@@ -208,30 +188,42 @@ async function buildPage(path: string, root: string): Promise<Page> {
   const parsed = parse(path)
   const url = getURL(parsed, root)
   const id = getHtmlId(parsed)
+  const inputKey = getRollupInputKey(parsed, root)
 
   return {
     src: path,
     id,
     md,
     url,
+    inputKey,
   }
 }
 
 async function mdToStaticHtml(md: string): Promise<string> {
+  // get md source as html
   const asHtml = await marked(md)
-
+  // create mock dom for html manipulation
   const DOM = new JSDOM(HTML_TEMPLATE)
   const document = DOM.window.document
+  // find target node for markdown content
   const targetNode = document.querySelector("#markdown-target")
   if (targetNode == null) {
     throw TypeError(
       'HTML template must include an element with the id "markdown-target".',
     )
   }
+  // get body node for css script insertion
+  const body = document.querySelector("body")!
+  // create script tag for importing css via vite/rollup
+  const scriptTag = document.createElement("script")
+  scriptTag.type = "module"
+  scriptTag.text = `import "$/styles/index.css"`
 
   targetNode.innerHTML = asHtml
+  body.appendChild(scriptTag)
 
-  return "<!doctype html>\n" + document.documentElement.outerHTML
+  return `<!doctype html>
+${document.documentElement.outerHTML}`
 }
 
 function buildInputObj(
@@ -242,8 +234,7 @@ function buildInputObj(
     const filePath = parse(entry)
     return {
       ...ret,
-      // [getURL(filePath, root)]: getHtmlId(filePath),
-      [getRollupInputKey(filePath, root)]: resolve(entry),
+      [getRollupInputKey(filePath, root)]: getHtmlId(filePath),
     }
   }, {})
 }
@@ -278,7 +269,7 @@ function getURL(path: ParsedPath, root: string): string {
   return `/${getRollupInputKey(path, root)}/`
 }
 
-function getHtmlId({ dir, name, ext }: ParsedPath): string {
+function getHtmlId({ dir, name }: ParsedPath): string {
   let res = `${dir}/${name}`
 
   // if filename is `index`, then relative URI is the containing directory:
@@ -294,11 +285,12 @@ function getHtmlId({ dir, name, ext }: ParsedPath): string {
   return res
 }
 
-// Can probably copy the implementation of indexHtmlMiddleware here
+// heavily inspired by implementation of indexHtmlMiddleware in vite server
 // https://github.com/vitejs/vite/blob/v5.4.9/packages/vite/src/node/server/middlewares/indexHtml.ts#L414
-// to get something that gets an html "file" from the md Page obj, then processes it
-// through server.transformIndexHtml(...) before sending it on to the client
-// this'll only work for dev though, build/preview needs to emit files to the bundle probably
+// starts at getting something that gets an html "file" from the md Page obj,
+// then processes it through server.transformIndexHtml(...) before sending it
+// on to the client this'll only work for dev though, build/preview needs to
+// emit files to the bundle probably
 function indexMdMiddleware(
   root: string,
   pages: Record<string, Page>,
