@@ -9,9 +9,9 @@
  * - [x] Build outputs static index.html files from markdown files, matching the source file tree.
  * - [ ] Customize output of...
  *   - [x] ...html using html template files.
- *   - [ ] ...css styles by specifying css files to include.
+ *   - [x] ...css styles by specifying css files to include.
  *   - [ ] [TODO]...markdown rendering using custom markdown renderer functions.
- * - [ ] Create sitemaps & feeds from markdown files.
+ * - [ ] [TODO]Create sitemaps & feeds from markdown files.
  */
 
 import { readFile, readdir, stat } from "fs/promises"
@@ -37,6 +37,7 @@ const HTML_TEMPLATE = `\
 export interface Options {
   root?: string
   htmlTemplate?: string
+  cssFile?: string
 }
 
 export default function staticMd(opts: Options): Plugin[] {
@@ -44,6 +45,7 @@ export default function staticMd(opts: Options): Plugin[] {
   let paths: string[] = []
   let pages: Record<string, Page> = {}
   let htmlTemplate: string
+  let cssFile = opts.cssFile
 
   let filter: (id: unknown) => boolean
 
@@ -81,7 +83,7 @@ export default function staticMd(opts: Options): Plugin[] {
       // markdown sources & transform those sources into index.html files
       configureServer(server) {
         server.middlewares.use(
-          indexMdMiddleware(root, pages, htmlTemplate, server),
+          indexMdMiddleware(server, root, pages, htmlTemplate, cssFile),
         )
       },
     },
@@ -100,12 +102,14 @@ export default function staticMd(opts: Options): Plugin[] {
             "Root must be defined in vite config or in plugin options",
           )
         }
+        // load given html template from file, or use default
+        htmlTemplate = opts.htmlTemplate
+          ? await readFile(opts.htmlTemplate, { encoding: "utf8" })
+          : HTML_TEMPLATE
 
         // walk filetree at root & get absolute paths to every markdown file
         paths = await getPaths(root)
         pages = await getPages(paths, root, "build")
-        console.log("pages parsed & indexed")
-        console.dir(pages)
         filter = (id) => Object.keys(pages).includes(id as string)
 
         return {
@@ -119,7 +123,6 @@ export default function staticMd(opts: Options): Plugin[] {
       },
 
       resolveId(src: string) {
-        console.log(`resolving ${src}`)
         // sources not in pages map are skipped
         if (!filter(src)) return null
         // ensure sources given in pages map are resolved,
@@ -128,16 +131,13 @@ export default function staticMd(opts: Options): Plugin[] {
       },
 
       async load(id: string) {
-        console.log(`loading ${id}`)
         // ids not in pages map are skipped
         if (!filter(id)) return null
 
         const { md } = pages[id]
-        console.log(`loaded ${id}:`)
         const res = {
-          code: await mdToStaticHtml(md, htmlTemplate),
+          code: await mdToStaticHtml(md, htmlTemplate, cssFile),
         }
-        console.dir(res)
 
         return res
       },
@@ -209,12 +209,12 @@ async function buildPage(path: string, root: string): Promise<Page> {
 async function mdToStaticHtml(
   md: string,
   htmlTemplate: string,
+  cssFile?: string,
 ): Promise<string> {
   // get md source as html
   const asHtml = await marked(md)
   // create mock dom for html manipulation
-  const DOM = new JSDOM(htmlTemplate)
-  const document = DOM.window.document
+  const document = createDocument(htmlTemplate, cssFile)
   // find target node for markdown content
   const targetNode = document.querySelector("#markdown-target")
   if (targetNode == null) {
@@ -316,10 +316,11 @@ function getHtmlId({ dir, name }: ParsedPath): string {
 // on to the client this'll only work for dev though, build/preview needs to
 // emit files to the bundle probably
 function indexMdMiddleware(
+  server: ViteDevServer | PreviewServer,
   root: string,
   pages: Record<string, Page>,
   htmlTemplate: string,
-  server: ViteDevServer | PreviewServer,
+  cssFile?: string,
 ): Connect.NextHandleFunction {
   const isDev = isDevServer(server)
 
@@ -347,7 +348,7 @@ function indexMdMiddleware(
         // `<filename>.md?raw`, parses it w/ marked before inserting parsed
         // markdown into html template instead of loading from filesystem
         if (isDev) {
-          let html = await mdToDynHtml(src, root, htmlTemplate)
+          let html = await mdToDynHtml(src, root, htmlTemplate, cssFile)
           // have vite apply standard html transforms
           // (hopefully this includes adding the markdown source to the module graph?)
           html = await server.transformIndexHtml(url, html, req.originalUrl)
@@ -381,9 +382,9 @@ async function mdToDynHtml(
   mdSrcPath: string,
   root: string,
   htmlTemplate: string,
+  cssFile?: string,
 ): Promise<string> {
-  const DOM = new JSDOM(htmlTemplate)
-  const document = DOM.window.document
+  const document = createDocument(htmlTemplate, cssFile)
   const body = document.querySelector("body")!
 
   const mdSrcRelative = getRelativePath(parse(mdSrcPath), root)
@@ -393,7 +394,6 @@ async function mdToDynHtml(
   scriptTag.text = `
 import { marked } from "marked"
 
-import "$/styles/index.css"
 import doc from "/${mdSrcRelative}?raw"
 
 const content = marked.parse(doc)
@@ -403,6 +403,24 @@ document.querySelector("#markdown-target").innerHTML = content
   body.appendChild(scriptTag)
 
   return normalizeHtml(document.documentElement.outerHTML)
+}
+
+function createDocument(htmlTemplate: string, cssFile?: string): Document {
+  const DOM = new JSDOM(htmlTemplate)
+  const document = DOM.window.document
+  // get body node for css script insertion
+  const body = document.querySelector("body")!
+
+  if (cssFile) {
+    // create script tag for importing css via vite/rollup
+    const scriptTag = document.createElement("script")
+    scriptTag.type = "module"
+    scriptTag.text = `import "${cssFile}"`
+
+    body.appendChild(scriptTag)
+  }
+
+  return document
 }
 
 function getRelativePath({ dir, base }: ParsedPath, root: string): string {

@@ -20,7 +20,12 @@ export default {
     },
   },
   // usage should be like:
-  plugins: [staticMd({ htmlTemplate: resolve(SRC_ROOT, "md-template.html") })],
+  plugins: [
+    staticMd({
+      htmlTemplate: resolve(SRC_ROOT, "md-template.html"),
+      cssFile: resolve(SRC_ROOT, "styles/index.css"),
+    }),
+  ],
   resolve: {
     alias: {
       $: SRC_ROOT,
