@@ -1,6 +1,21 @@
+/*
+ * vite-plugin-static-md
+ *
+ * A simple plugin for building a truly static multi-page site from markdown files using vite.
+ *
+ * Features:
+ *
+ * - [x] Dev server w/ HMR for live updates as you edit markdown files.
+ * - [ ] Build outputs static index.html files from markdown files, matching the source file tree.
+ * - [ ] Customize output of...
+ *   - [ ] ...html using html template files.
+ *   - [ ] ...markdown rendering using custom markdown renderer functions.
+ *   - [ ] ...css styles by specifying css files to include.
+ * - [ ] Create sitemaps & feeds from markdown files.
+ */
+
 import { readFile, readdir, stat } from "fs/promises"
 import { ParsedPath, parse, resolve } from "path"
-import { inspect } from "util"
 
 import { JSDOM } from "jsdom"
 import { marked } from "marked"
@@ -26,142 +41,124 @@ const HTML_TEMPLATE = `\
 </html>
 `
 
-const dir = (obj: any) => inspect(obj, { depth: 4, colors: true })
-
 export interface Options {
   root?: string
   // htmlTemplate: string
 }
 
-export default function staticMd(opts: Options): Plugin {
+export default function staticMd(opts: Options): Plugin[] {
   let root: string
   let paths: string[] = []
   let pages: Record<string, Page> = {}
 
   let filter = createFilter("**/*.md")
 
-  return {
-    name: "static-md-plugin",
+  return [
+    {
+      name: "static-md-plugin:serve",
+      apply: "serve",
 
-    // edit user config to add all markdown files as rollup entry points
-    async config(userConfig): Promise<UserConfig> {
-      // ensure a root is specified so URIs can be build for output destinations
-      let cfgRoot = opts.root || userConfig.root
-      if (cfgRoot) {
-        root = cfgRoot
-      } else {
-        throw Error("Root must be defined in vite config or in plugin options")
-      }
+      // edit user config to add all markdown files as rollup entry points
+      async config(userConfig): Promise<UserConfig> {
+        // ensure a root is specified so URIs can be build for output destinations
+        let cfgRoot = opts.root || userConfig.root
+        if (cfgRoot) {
+          root = cfgRoot
+        } else {
+          throw Error(
+            "Root must be defined in vite config or in plugin options",
+          )
+        }
 
-      // walk filetree at root & get absolute paths to every markdown file
-      paths = await getPaths(root)
-      pages = await getPages(paths, root)
+        // walk filetree at root & get absolute paths to every markdown file
+        paths = await getPaths(root)
+        pages = await getPages(paths, root)
 
-      return {
-        build: {
-          rollupOptions: {
-            // build rollup input option object from absolute paths
-            input: buildInputObj(paths, root),
+        return {
+          build: {
+            rollupOptions: {
+              // build rollup input option object from absolute paths
+              input: buildInputObj(paths, root),
+            },
           },
-        },
-      }
+        }
+      },
+
+      // TODO: try to emit markdown files into build?
+      // UPDATE: looks like `this.emit` is ignored during dev mode
+      //         might need to split this plugin into :build & :serve variants
+      // buildStart(options) {
+      //   console.log("buildStart(...)")
+      //   console.log(dir(options))
+      //   for (const page of Object.values(pages)) {
+      //     const { id } = page
+      //     console.log(`emitting ${id}`)
+      //     this.emitFile({
+      //       type: "chunk",
+      //       id,
+      //     })
+      //   }
+      // },
+
+      // configure custom middleware to point urls matching `pages` to their
+      // markdown sources & transform those sources into index.html files
+      configureServer(server) {
+        server.middlewares.use(indexMdMiddleware(root, pages, server))
+      },
+
+      // async transformIndexHtml(html, ctx): Promise<string> {
+      //   console.log(
+      //     `transformIndexHtml(...) transforming ${ctx.filename} for request at ${ctx.path}`,
+      //   )
+      //   console.log(dir(html))
+
+      //   return html
+      // },
+
+      // async resolveId(source, importer, options) {
+      //   console.log(`resolveId(...) resolving ${source} with`)
+      //   console.log(dir(importer))
+      //   console.log(dir(options))
+      // },
+
+      // // then, allow loading markdown files as entry points hopefully?
+      // async load(id) {
+      //   console.log(`load(...) loading ${id}...`)
+      //   if (!filter(id)) return null
+
+      //   const contents = await readFile(id, { encoding: "utf8" })
+      //   console.log(`loaded ${id}:`)
+      //   console.log(dir({ code: contents }))
+
+      //   return {
+      //     code: contents,
+      //   }
+      // },
+
+      // and transform md files to html string
+      // async transform(code, id) {
+      //   console.log(`transform(...) transforming ${id}...`)
+      //   if (!filter(id)) return null
+      //   console.log("from:")
+      //   console.log(dir(code))
+
+      //   console.log(`moduleInfo(${id})`)
+      //   let info = this.getModuleInfo(id)
+      //   console.log(dir(info))
+
+      //   const asHtml = await marked(code)
+      //   const DOM = new JSDOM(HTML_TEMPLATE)
+      //   const document = DOM.window.document
+      //   const targetNode = document.querySelector("#markdown-target")
+      //   targetNode.innerHTML = asHtml
+
+      //   let res = "<!doctype html>\n" + document.documentElement.outerHTML
+      //   console.log("to:")
+      //   console.log(dir(res))
+      //   return res
+      // },
     },
-
-    // TODO: try to emit markdown files into build?
-    // UPDATE: looks like `this.emit` is ignored during dev mode
-    //         might need to split this plugin into :build & :serve variants
-    // buildStart(options) {
-    //   console.log("buildStart(...)")
-    //   console.log(dir(options))
-    //   for (const page of Object.values(pages)) {
-    //     const { id } = page
-    //     console.log(`emitting ${id}`)
-    //     this.emitFile({
-    //       type: "chunk",
-    //       id,
-    //     })
-    //   }
-    // },
-
-    // FIXME: remove this one config is confirmed to be setup correctly
-    // configResolved(config) {
-    //   const input = config.build.rollupOptions.input
-    //   console.log(`Resolved config.build.rollupOptions.input object: ${input}`)
-    //   console.log(dir(input))
-    // },
-
-    // TODO: could use this to just listen for any requests to any entry point, then send
-    // the markdown on request...not sure this would include HMR though?
-    // UPDATE: seems like I'd have to impl hmr manually here, probably a better way...
-    // configureServer(server) {
-    //   const urls = Object.keys(pages)
-    //   server.middlewares.use((req, res, next) => {
-    //     console.log(`configureServer(...) handling request ${req.url}`)
-    //     if (!urls.includes(req.url)) {
-    //       return next()
-    //     }
-
-    //     res.writeHead(200, {
-    //       "content-type": "text/html; charset=utf-8",
-    //     })
-    //   })
-    // },
-    configureServer(server) {
-      server.middlewares.use(indexMdMiddleware(root, pages, server))
-    },
-
-    async transformIndexHtml(html, ctx): Promise<string> {
-      console.log(
-        `transformIndexHtml(...) transforming ${ctx.filename} for request at ${ctx.path}`,
-      )
-      console.log(dir(html))
-
-      return html
-    },
-
-    async resolveId(source, importer, options) {
-      console.log(`resolveId(...) resolving ${source} with`)
-      console.log(dir(importer))
-      console.log(dir(options))
-    },
-
-    // then, allow loading markdown files as entry points hopefully?
-    async load(id) {
-      console.log(`load(...) loading ${id}...`)
-      if (!filter(id)) return null
-
-      const contents = await readFile(id, { encoding: "utf8" })
-      console.log(`loaded ${id}:`)
-      console.log(dir({ code: contents }))
-
-      return {
-        code: contents,
-      }
-    },
-
-    // and transform md files to html string
-    // async transform(code, id) {
-    //   console.log(`transform(...) transforming ${id}...`)
-    //   if (!filter(id)) return null
-    //   console.log("from:")
-    //   console.log(dir(code))
-
-    //   console.log(`moduleInfo(${id})`)
-    //   let info = this.getModuleInfo(id)
-    //   console.log(dir(info))
-
-    //   const asHtml = await marked(code)
-    //   const DOM = new JSDOM(HTML_TEMPLATE)
-    //   const document = DOM.window.document
-    //   const targetNode = document.querySelector("#markdown-target")
-    //   targetNode.innerHTML = asHtml
-
-    //   let res = "<!doctype html>\n" + document.documentElement.outerHTML
-    //   console.log("to:")
-    //   console.log(dir(res))
-    //   return res
-    // },
-  }
+  ]
 }
 
 async function getPaths(root: string): Promise<string[]> {
@@ -189,7 +186,6 @@ interface Page {
   src: string
   id: string
   md: string
-  html: () => Promise<string>
   url: string
 }
 
@@ -209,7 +205,6 @@ async function getPages(
 
 async function buildPage(path: string, root: string): Promise<Page> {
   const md = await readFile(path, { encoding: "utf8" })
-  const html = async () => await mdToStaticHtml(md)
   const parsed = parse(path)
   const url = getURL(parsed, root)
   const id = getHtmlId(parsed)
@@ -218,7 +213,6 @@ async function buildPage(path: string, root: string): Promise<Page> {
     src: path,
     id,
     md,
-    html,
     url,
   }
 }
