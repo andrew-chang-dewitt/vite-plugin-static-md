@@ -8,9 +8,9 @@
  * - [x] Dev server w/ HMR for live updates as you edit markdown files.
  * - [x] Build outputs static index.html files from markdown files, matching the source file tree.
  * - [ ] Customize output of...
- *   - [ ] ...html using html template files.
- *   - [ ] ...markdown rendering using custom markdown renderer functions.
+ *   - [x] ...html using html template files.
  *   - [ ] ...css styles by specifying css files to include.
+ *   - [ ] [TODO]...markdown rendering using custom markdown renderer functions.
  * - [ ] Create sitemaps & feeds from markdown files.
  */
 
@@ -36,13 +36,14 @@ const HTML_TEMPLATE = `\
 
 export interface Options {
   root?: string
-  // htmlTemplate: string
+  htmlTemplate?: string
 }
 
 export default function staticMd(opts: Options): Plugin[] {
   let root: string
   let paths: string[] = []
   let pages: Record<string, Page> = {}
+  let htmlTemplate: string
 
   let filter: (id: unknown) => boolean
 
@@ -62,6 +63,10 @@ export default function staticMd(opts: Options): Plugin[] {
             "Root must be defined in vite config or in plugin options",
           )
         }
+        // load given html template from file, or use default
+        htmlTemplate = opts.htmlTemplate
+          ? await readFile(opts.htmlTemplate, { encoding: "utf8" })
+          : HTML_TEMPLATE
 
         // walk filetree at root & get absolute paths to every markdown file
         paths = await getPaths(root)
@@ -75,7 +80,9 @@ export default function staticMd(opts: Options): Plugin[] {
       // configure custom middleware to point urls matching `pages` to their
       // markdown sources & transform those sources into index.html files
       configureServer(server) {
-        server.middlewares.use(indexMdMiddleware(root, pages, server))
+        server.middlewares.use(
+          indexMdMiddleware(root, pages, htmlTemplate, server),
+        )
       },
     },
     {
@@ -128,7 +135,7 @@ export default function staticMd(opts: Options): Plugin[] {
         const { md } = pages[id]
         console.log(`loaded ${id}:`)
         const res = {
-          code: await mdToStaticHtml(md),
+          code: await mdToStaticHtml(md, htmlTemplate),
         }
         console.dir(res)
 
@@ -199,11 +206,14 @@ async function buildPage(path: string, root: string): Promise<Page> {
   }
 }
 
-async function mdToStaticHtml(md: string): Promise<string> {
+async function mdToStaticHtml(
+  md: string,
+  htmlTemplate: string,
+): Promise<string> {
   // get md source as html
   const asHtml = await marked(md)
   // create mock dom for html manipulation
-  const DOM = new JSDOM(HTML_TEMPLATE)
+  const DOM = new JSDOM(htmlTemplate)
   const document = DOM.window.document
   // find target node for markdown content
   const targetNode = document.querySelector("#markdown-target")
@@ -222,8 +232,22 @@ async function mdToStaticHtml(md: string): Promise<string> {
   targetNode.innerHTML = asHtml
   body.appendChild(scriptTag)
 
-  return `<!doctype html>
-${document.documentElement.outerHTML}`
+  return normalizeHtml(document.documentElement.outerHTML)
+}
+
+// alter given string so it has everything needed to be a complete html doc
+function normalizeHtml(code: string): string {
+  const doctype = "<!doctype html>"
+
+  let res = ""
+
+  if (!code.startsWith(doctype)) {
+    res += doctype
+  }
+
+  res += code
+
+  return res
 }
 
 function buildInputObj(
@@ -294,6 +318,7 @@ function getHtmlId({ dir, name }: ParsedPath): string {
 function indexMdMiddleware(
   root: string,
   pages: Record<string, Page>,
+  htmlTemplate: string,
   server: ViteDevServer | PreviewServer,
 ): Connect.NextHandleFunction {
   const isDev = isDevServer(server)
@@ -322,7 +347,7 @@ function indexMdMiddleware(
         // `<filename>.md?raw`, parses it w/ marked before inserting parsed
         // markdown into html template instead of loading from filesystem
         if (isDev) {
-          let html = await mdToDynHtml(src, root)
+          let html = await mdToDynHtml(src, root, htmlTemplate)
           // have vite apply standard html transforms
           // (hopefully this includes adding the markdown source to the module graph?)
           html = await server.transformIndexHtml(url, html, req.originalUrl)
@@ -352,8 +377,12 @@ function cleanUrl(url: string): string {
   return url.replace(postfixRE, "")
 }
 
-async function mdToDynHtml(mdSrcPath: string, root: string): Promise<string> {
-  const DOM = new JSDOM(HTML_TEMPLATE)
+async function mdToDynHtml(
+  mdSrcPath: string,
+  root: string,
+  htmlTemplate: string,
+): Promise<string> {
+  const DOM = new JSDOM(htmlTemplate)
   const document = DOM.window.document
   const body = document.querySelector("body")!
 
@@ -373,7 +402,7 @@ document.querySelector("#markdown-target").innerHTML = content
 
   body.appendChild(scriptTag)
 
-  return "<!doctype html>\n" + document.documentElement.outerHTML
+  return normalizeHtml(document.documentElement.outerHTML)
 }
 
 function getRelativePath({ dir, base }: ParsedPath, root: string): string {
