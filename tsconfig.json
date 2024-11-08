@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "paths": {
+      "$/*": ["./src/*"]
+    },
+    "moduleResolution": "bundler"
+  }
+}
