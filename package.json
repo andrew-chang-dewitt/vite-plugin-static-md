@@ -1,9 +1,9 @@
 {
   "name": "vite-plugin-static-md",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": "Andrew Chang-DeWitt",
   "license": "MIT",
-  "homepage": "https://github.com/andrew-chang-dewitt/vite-plugin-static-md#README",
+  "homepage": "https://github.com/andrew-chang-dewitt/vite-plugin-static-md#readme",
   "bugs": {
     "url": "https://github.com/andrew-chang-dewitt/vite-plugin-static-md/issues"
   },
