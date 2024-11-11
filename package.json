@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "author": "Andrew Chang-DeWitt",
   "license": "MIT",
+  "homepage": "https://github.com/andrew-chang-dewitt/vite-plugin-static-md#README",
+  "bugs": {
+    "url": "https://github.com/andrew-chang-dewitt/vite-plugin-static-md/issues"
+  },
   "type": "module",
   "main": "dist/main.js",
   "types": "dist/main.d.ts",
