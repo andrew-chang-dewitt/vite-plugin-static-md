@@ -1,26 +1,22 @@
 {
-  "name": "vite-plugin-static-md",
+  "name": "static-markdown-example",
   "version": "0.1.0",
   "author": "Andrew Chang-DeWitt",
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "dev": "vite --host 0.0.0.0",
+    "dev": "vite",
     "build": "vite build --emptyOutDir",
     "preview": "vite preview"
   },
   "prettier": {
     "semi": false
   },
-  "dependencies": {
-    "jsdom": "^25.0.1",
-    "marked": "^14.1.3",
-    "vite": "^5.4.9"
-  },
   "devDependencies": {
     "@types/jsdom": "^21.1.7",
     "@types/node": "^22.9.0",
     "prettier": "^3.3.3",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "vite": "^5.4.9"
   }
 }

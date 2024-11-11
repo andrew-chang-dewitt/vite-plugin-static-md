@@ -12,7 +12,8 @@
   "scripts": {
     "dev": "cd example && npm run dev",
     "prebuild": "rm -rf dist",
-    "build": "tsc"
+    "build": "tsc",
+    "prepublish": "build"
   },
   "prettier": {
     "semi": false
