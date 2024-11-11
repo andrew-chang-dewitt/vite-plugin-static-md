@@ -98,7 +98,7 @@ export default function staticMd(opts: Options): Plugin[] {
         pages = await getPages(paths, root, "build")
         filter = (id) => Object.keys(pages).includes(id as string)
 
-        return {
+        const res = {
           build: {
             rollupOptions: {
               // build rollup input option object from absolute paths
@@ -106,6 +106,11 @@ export default function staticMd(opts: Options): Plugin[] {
             },
           },
         }
+
+        console.log("config modified to include")
+        console.dir(res.build.rollupOptions)
+
+        return res
       },
 
       resolveId(src: string) {
@@ -260,6 +265,7 @@ function buildInputObj(
  */
 function getRollupInputKey({ dir, name }: ParsedPath, root: string): string {
   let res = ""
+  console.log(`making ${dir}/${name} relative...`)
 
   // starts w/ root means it's not relative --
   // FIXME: this probably should be a lot more robust, but good enough for now
@@ -275,8 +281,14 @@ function getRollupInputKey({ dir, name }: ParsedPath, root: string): string {
   // otherwise, relative uri should include filename:
   //   e.g. `some/page/nested.md` => `some/page/nested/`
   if (name !== "index") {
-    res += `/${name}`
+    // a separating `/` is needed if the relative path is in a subdir
+    if (res.length > 0) {
+      res += "/"
+    }
+    res += `${name}`
   }
+
+  console.log(`done: ${res}`)
 
   return res
 }
