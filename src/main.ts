@@ -19,8 +19,14 @@ import { ParsedPath, parse, resolve } from "path"
 
 import { JSDOM } from "jsdom"
 import { marked } from "marked"
-import { Plugin, PreviewServer, UserConfig, ViteDevServer, send } from "vite"
-import type { Connect } from "vite"
+import { send } from "vite"
+import type {
+  Connect,
+  Plugin,
+  PreviewServer,
+  UserConfig,
+  ViteDevServer,
+} from "vite"
 
 const HTML_TEMPLATE = `\
 <html lang="en">
@@ -35,7 +41,6 @@ const HTML_TEMPLATE = `\
 `
 
 export interface Options {
-  root?: string
   htmlTemplate?: string
   cssFile?: string
 }
@@ -55,16 +60,9 @@ export default function staticMd(opts: Options): Plugin[] {
       apply: "serve",
 
       // edit user config to add all markdown files as rollup entry points
-      async config(userConfig): Promise<UserConfig> {
-        // ensure a root is specified so URIs can be build for output destinations
-        let cfgRoot = opts.root || userConfig.root
-        if (cfgRoot) {
-          root = cfgRoot
-        } else {
-          throw Error(
-            "Root must be defined in vite config or in plugin options",
-          )
-        }
+      async configResolved(userConfig): Promise<void> {
+        // get web root dir from config
+        root = userConfig.root
         // load given html template from file, or use default
         htmlTemplate = opts.htmlTemplate
           ? await readFile(opts.htmlTemplate, { encoding: "utf8" })
@@ -73,10 +71,6 @@ export default function staticMd(opts: Options): Plugin[] {
         // walk filetree at root & get absolute paths to every markdown file
         paths = await getPaths(root)
         pages = await getPages(paths, root, "dev")
-
-        // we don't need to alter config in dev mode--vite doesn't care about
-        // rollup input options anyways
-        return userConfig
       },
 
       // configure custom middleware to point urls matching `pages` to their
@@ -93,20 +87,12 @@ export default function staticMd(opts: Options): Plugin[] {
 
       // edit user config to add all markdown files as rollup entry points
       async config(userConfig): Promise<UserConfig> {
-        // ensure a root is specified so URIs can be build for output destinations
-        let cfgRoot = opts.root || userConfig.root
-        if (cfgRoot) {
-          root = cfgRoot
-        } else {
-          throw Error(
-            "Root must be defined in vite config or in plugin options",
-          )
-        }
+        // get root from config or find default
+        root = resolveRoot(userConfig.root)
         // load given html template from file, or use default
         htmlTemplate = opts.htmlTemplate
           ? await readFile(opts.htmlTemplate, { encoding: "utf8" })
           : HTML_TEMPLATE
-
         // walk filetree at root & get absolute paths to every markdown file
         paths = await getPaths(root)
         pages = await getPages(paths, root, "build")
@@ -143,6 +129,12 @@ export default function staticMd(opts: Options): Plugin[] {
       },
     },
   ]
+}
+
+// resolve root, using same technique as vite, found in source:
+// https://github.com/vitejs/vite/blob/5f52bc8b9e4090cdcaf3f704278db30dafc825cc/packages/vite/src/node/config.ts#L527
+function resolveRoot(root: string | undefined): string {
+  return root ? resolve(root) : process.cwd()
 }
 
 async function getPaths(root: string): Promise<string[]> {
