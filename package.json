@@ -17,7 +17,7 @@
     "dev": "cd example && npm run dev",
     "prebuild": "rm -rf dist",
     "build": "tsc",
-    "prepublish": "build"
+    "prepublish": "npm run build"
   },
   "prettier": {
     "semi": false
