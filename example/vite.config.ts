@@ -16,6 +16,7 @@ export default {
       // for every md pge
       input: {
         main: resolve(HTML_ROOT, "index.html"),
+        other: resolve(HTML_ROOT, "other/index.html"),
       },
     },
   },
