@@ -3,7 +3,7 @@
 
 name: Release on tag
 
-on: 
+on:
   push:
     tags:
     - '*'
@@ -26,7 +26,7 @@ jobs:
     - name: get tag message
       id: get-tag-message
       run: |
-        echo "BODY=$(git tag --format='# %(*subject) 
+        echo "BODY=$(git tag --format='# %(*subject)
 
         %(*body)' --contains)" >> $GITHUB_OUTPUT
     - uses: ncipollo/release-action@v1
