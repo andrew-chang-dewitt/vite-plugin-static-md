@@ -18,7 +18,6 @@ export default {
       },
     },
   },
-  // usage should be like:
   plugins: [
     staticMd({
       htmlTemplate: resolve(SRC_ROOT, "md-template.html"),
