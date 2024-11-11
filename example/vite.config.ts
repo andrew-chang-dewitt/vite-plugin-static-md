@@ -12,8 +12,6 @@ export default {
   build: {
     outDir: OUT_DIR,
     rollupOptions: {
-      // ideally, a solution will auto-generate these
-      // for every md pge
       input: {
         main: resolve(HTML_ROOT, "index.html"),
         other: resolve(HTML_ROOT, "other/index.html"),
