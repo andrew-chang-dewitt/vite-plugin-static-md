@@ -16,7 +16,7 @@
   "scripts": {
     "dev": "cd example && npm run dev",
     "test": "echo 'TESTS NOT IMPLEMENTED YET'",
-    "prebuild": "rm -rf dist",
+    "prebuild": "rm -rf dist && npm run test",
     "build": "tsc",
     "prerelease": "npm run build",
     "release": "standard-version",
