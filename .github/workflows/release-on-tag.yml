@@ -22,14 +22,14 @@ jobs:
       run: |
         npm run build
         npm pack
-    # - name: get release body
-    #   id: get-release-body
-    #   run: |
-    #     echo "BODY=$(git tag --format='# %(*subject)
-
-    #     %(*body)' --contains)" >> $GITHUB_OUTPUT
+    - name: get release body
+      id: get-release-body
+      run: |
+        node scripts/getChanges.js
+        echo "BODY for GH release:"
+        cat BODY.md
     - uses: ncipollo/release-action@v1
       with:
         artifacts: "vite-plugin-static-md-*.tgz,dist/*"
         token: ${{secrets.RELEASE_PAT}}
-        # body: ${{steps.get-tag-message.outputs.BODY}}
+        bodyFile: "BODY.md"
