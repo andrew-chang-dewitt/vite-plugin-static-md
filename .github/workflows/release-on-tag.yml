@@ -1,0 +1,29 @@
+name: Release to github on tag
+
+on:
+  tag:
+    "*"
+
+jobs:
+  release:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22.x
+        cache: 'npm'
+    - name: install dependencies
+      run: npm ci
+    # - name: get release body
+    #   id: get-release-body
+    #   run: |
+    #     echo "BODY=$(git tag --format='# %(*subject)
+
+    #     %(*body)' --contains)" >> $GITHUB_OUTPUT
+    - uses: ncipollo/release-action@v1
+      with:
+        artifacts: "vite-plugin-static-md-*.tgz"
+        # body: ${{steps.get-tag-message.outputs.BODY}}
