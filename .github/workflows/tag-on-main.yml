@@ -4,13 +4,13 @@ on:
   push:
     branches:
       - main
-    tags-ignore:
-      - v*
 
 jobs:
   bump_and_tag:
     name: "Bump, tag, and push"
     runs-on: ubuntu-latest
+    # skip if commit is a version release
+    if: "!contains(github.event.head_commit.message, 'chore(release):')"
 
     steps:
     - uses: actions/checkout@v4
