@@ -27,4 +27,5 @@ jobs:
     - uses: ncipollo/release-action@v1
       with:
         artifacts: "vite-plugin-static-md-*.tgz"
+        token: ${{secrets.BOT_PAT}}
         # body: ${{steps.get-tag-message.outputs.BODY}}
