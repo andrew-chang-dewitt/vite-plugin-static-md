@@ -30,6 +30,10 @@ async function main() {
     idx++
   }
 
+  if (res.length == 0) {
+    console.error("No changes in version, aborting release...")
+    process.exit(1)
+  }
   console.log(`writing to ${BODYFILE}`)
   await writeFile(BODYFILE, res.trim(), { encoding: "utf8" })
 }
