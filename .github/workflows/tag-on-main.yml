@@ -56,7 +56,7 @@ jobs:
         echo "release $TAG made with updated changelog:"
         cat CHANGELOG.md
     - name: push tag
-      run: git push --folow-tags origin main
+      run: git push --follow-tags origin main
     # - name: get release body
     #   id: get-release-body
     #   run: |
