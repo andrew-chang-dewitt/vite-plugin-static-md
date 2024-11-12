@@ -6,8 +6,8 @@ on:
       - main
 
 jobs:
-  release:
-
+  bump_and_tag:
+    name: "Bump, tag, and push"
     runs-on: ubuntu-latest
 
     steps:
