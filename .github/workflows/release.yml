@@ -19,8 +19,34 @@ jobs:
       with:
         node-version: 22.x
         cache: 'npm'
-    - name: prepare
+    - name: install dependencies
       run: npm ci
+    - name: load bot signing key
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      run: |
+        echo "loading key"
+        mkdir -p /home/runner/.ssh
+        echo "${{secrets.BOT_SSH_KEY}}" > /home/runner/.ssh/bot
+        chmod 600 /home/runner/.ssh/bot
+        ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+        ssh-add /home/runner/.ssh/bot
+        echo "key added:"
+        ssh-add -l
+    - name: configure git
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      run: |
+        echo "enforcing signed commits & tags"
+        git config --global user.signingkey "/home/runner/.ssh/bot"
+        git config --global commit.gpgsign "true"
+        git config --global gpg.format "ssh"
+        git config --global tag.gpgSign "true"
+        echo "adding andrew-chang-dewitt-bot as git user"
+        git config --global user.email "${{secrets.BOT_EMAIL}}"
+        git config --global user.name "andrew-chang-dewitt-bot"
+        echo "git configured:"
+        git config -l
     - name: release
       run: npm run release
     # - name: get release body
@@ -31,5 +57,5 @@ jobs:
     #     %(*body)' --contains)" >> $GITHUB_OUTPUT
     - uses: ncipollo/release-action@v1
       with:
-        artifacts: "vite-plugin-static-md-*.tgz, dist/*"
+        artifacts: "vite-plugin-static-md-*.tgz"
         # body: ${{steps.get-tag-message.outputs.BODY}}
