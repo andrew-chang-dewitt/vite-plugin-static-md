@@ -50,6 +50,8 @@ jobs:
         export TAG=$(git describe --tags --abbrev=0)
         echo "release $TAG made with updated changelog:"
         cat CHANGELOG.md
+    - name: push tag
+      run: git push origin main
     # - name: get release body
     #   id: get-release-body
     #   run: |
