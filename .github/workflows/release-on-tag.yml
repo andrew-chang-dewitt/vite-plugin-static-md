@@ -18,6 +18,10 @@ jobs:
         cache: 'npm'
     - name: install dependencies
       run: npm ci
+    - name: build artifacts
+      run: |
+        npm run build
+        npm pack
     # - name: get release body
     #   id: get-release-body
     #   run: |
@@ -26,6 +30,6 @@ jobs:
     #     %(*body)' --contains)" >> $GITHUB_OUTPUT
     - uses: ncipollo/release-action@v1
       with:
-        artifacts: "vite-plugin-static-md-*.tgz"
-        token: ${{secrets.BOT_PAT}}
+        artifacts: "vite-plugin-static-md-*.tgz,dist/*"
+        token: ${{secrets.RELEASE_PAT}}
         # body: ${{steps.get-tag-message.outputs.BODY}}
