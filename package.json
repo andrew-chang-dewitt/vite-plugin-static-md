@@ -19,7 +19,7 @@
     "prebuild": "rm -rf dist && npm run test",
     "build": "tsc",
     "prerelease": "npm run build",
-    "release": "echo 'RELEASE NOT IMPLEMENTED YET'",
+    "release": "commit-and-tag-version",
     "prepare": "husky install",
     "prepublishOnly": "npm run build"
   },
