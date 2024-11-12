@@ -1,8 +1,9 @@
 name: Release on tag
 
 on:
-  tag:
-    "*"
+  push:
+    tags:
+      - v*
 
 jobs:
   release:
