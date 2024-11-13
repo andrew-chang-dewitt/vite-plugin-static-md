@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+create () {
+  git checkout -b bot/release-staging
+  npm run release
+  node scripts/getChanges.js
+}
+
+push () {
+    git checkout main
+    git merge bot/release-staging
+    git push --follow-tags origin main
+}
+
+cleanup () {
+    git checkout main
+    git branch -D bot/release-staging
+}
+
+create
+
+if [ -s BODY.md ]; then
+    echo "user facing changes found, pushing tag for release"
+    push
+else
+    echo "no user facing changes found, deleting tag"
+fi
+
+cleanup
