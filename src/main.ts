@@ -28,6 +28,8 @@ import type {
   ViteDevServer,
 } from "vite"
 
+import { createLogger } from "./logging.ts"
+
 const HTML_TEMPLATE = `\
 <html lang="en">
   <head>
@@ -39,6 +41,9 @@ const HTML_TEMPLATE = `\
   </body>
 </html>
 `
+
+// init a default logger instance, will replace w/ custom level if given in config
+let logger = createLogger()
 
 export interface Options {
   htmlTemplate?: string
@@ -61,6 +66,10 @@ export default function staticMd(opts: Options): Plugin[] {
 
       // get markdown pages from config & setup log level
       async configResolved(userConfig): Promise<void> {
+        // setup logger if not default
+        if (userConfig.logLevel !== "info") {
+          logger = createLogger(userConfig.logLevel)
+        }
         // get web root dir from config
         root = userConfig.root
         // load given html template from file, or use default
@@ -71,7 +80,7 @@ export default function staticMd(opts: Options): Plugin[] {
         // walk filetree at root & get absolute paths to every markdown file
         paths = await getPaths(root)
         pages = await getPages(paths, root, "dev")
-        console.dir(pages)
+        logger.dir(pages)
       },
 
       // configure custom middleware to point urls matching `pages` to their
@@ -108,8 +117,8 @@ export default function staticMd(opts: Options): Plugin[] {
           },
         }
 
-        console.info("config modified to include")
-        console.dir(res.build.rollupOptions)
+        logger.info("config modified to include")
+        logger.dir(res.build.rollupOptions)
 
         return res
       },
@@ -298,7 +307,7 @@ function getOutputRelativePath(
   root: string,
 ): string {
   let res = ""
-  console.info(`making ${dir}/${name} relative...`)
+  logger.info(`making ${dir}/${name} relative...`)
 
   // starts w/ root means it's not relative --
   // FIXME: this probably should be a lot more robust, but good enough for now
@@ -321,7 +330,7 @@ function getOutputRelativePath(
     res += `${name}`
   }
 
-  console.info(`done: ${res}`)
+  logger.info(`done: ${res}`)
 
   return res
 }
@@ -384,11 +393,11 @@ function indexMdMiddleware(
           let html = await mdToDynHtml(src, root, htmlTemplate, cssFile)
           // have vite apply standard html transforms
           // (hopefully this includes adding the markdown source to the module graph?)
-          console.info(`${url} before vite's transform:`)
-          console.dir(html)
+          logger.info(`${url} before vite's transform:`)
+          logger.dir(html)
           html = await server.transformIndexHtml(url, html, req.originalUrl)
-          console.info(`${url} served as:`)
-          console.dir(html)
+          logger.info(`${url} served as:`)
+          logger.dir(html)
           return send(req, res, html, "html", { headers })
         } else {
           throw TypeError(
@@ -462,7 +471,7 @@ function createDocument(htmlTemplate: string, cssFile?: string): Document {
 
 function getInputRelativePath({ dir, base }: ParsedPath, root: string): string {
   let res = ""
-  console.info(`making ${dir}/${base} relative...`)
+  logger.info(`making ${dir}/${base} relative...`)
 
   // starts w/ root means it's not relative --
   // FIXME: this probably should be a lot more robust, but good enough for now
@@ -479,7 +488,7 @@ function getInputRelativePath({ dir, base }: ParsedPath, root: string): string {
   }
   res += `${base}`
 
-  console.info(`done: ${res}`)
+  logger.info(`done: ${res}`)
 
   return res
 }
