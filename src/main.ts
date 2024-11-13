@@ -64,12 +64,19 @@ export default function staticMd(opts: Options): Plugin[] {
       name: "static-md-plugin:serve",
       apply: "serve",
 
-      // get markdown pages from config & setup log level
-      async configResolved(userConfig): Promise<void> {
-        // setup logger if not default
-        if (userConfig.logLevel !== "info") {
+      // setup log level if user provides a value
+      config(userConfig): UserConfig {
+        // setup logger if not vite's default
+        if (userConfig.logLevel) {
           logger = createLogger(userConfig.logLevel)
         }
+
+        // we don't actually modify the config at all here
+        return userConfig
+      },
+
+      // get markdown pages from config & setup log level
+      async configResolved(userConfig): Promise<void> {
         // get web root dir from config
         root = userConfig.root
         // load given html template from file, or use default
@@ -97,6 +104,10 @@ export default function staticMd(opts: Options): Plugin[] {
 
       // edit user config to add all markdown files as rollup entry points
       async config(userConfig): Promise<UserConfig> {
+        // setup logger if not vite's default
+        if (userConfig.logLevel) {
+          logger = createLogger(userConfig.logLevel)
+        }
         // get root from config or find default
         root = resolveRoot(userConfig.root)
         // load given html template from file, or use default
