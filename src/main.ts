@@ -59,7 +59,7 @@ export default function staticMd(opts: Options): Plugin[] {
       name: "static-md-plugin:serve",
       apply: "serve",
 
-      // edit user config to add all markdown files as rollup entry points
+      // get markdown pages from config & setup log level
       async configResolved(userConfig): Promise<void> {
         // get web root dir from config
         root = userConfig.root
@@ -71,6 +71,7 @@ export default function staticMd(opts: Options): Plugin[] {
         // walk filetree at root & get absolute paths to every markdown file
         paths = await getPaths(root)
         pages = await getPages(paths, root, "dev")
+        console.dir(pages)
       },
 
       // configure custom middleware to point urls matching `pages` to their
@@ -107,7 +108,7 @@ export default function staticMd(opts: Options): Plugin[] {
           },
         }
 
-        console.log("config modified to include")
+        console.info("config modified to include")
         console.dir(res.build.rollupOptions)
 
         return res
@@ -260,12 +261,44 @@ function buildInputObj(
   }, {})
 }
 
-/*
- * Remove leading directories & file name from path to get a relative URI.
+/**
+ * @param path ParsedPath -- some path to some markdown resource
+ * @param root string -- root path that the result should be relative to
+ * @returns string a relative path to a directory for the given resource
+ *
+ * Defers to `getOutputRelativePath(...)`
  */
-function getRollupInputKey({ dir, name }: ParsedPath, root: string): string {
+function getRollupInputKey(path: ParsedPath, root: string): string {
+  return getOutputRelativePath(path, root)
+}
+
+/**
+ * @param path ParsedPath -- some path to some markdown resource
+ * @param root string -- root path that the result should be relative to
+ * @returns string a relative path to a directory for the given resource
+ *
+ * Ensures leading & trailing slashes are present & defers rest to
+ * `getOutputRelativePath(...)` function
+ */
+function getURL(path: ParsedPath, root: string): string {
+  return `/${getOutputRelativePath(path, root)}/`
+}
+
+/**
+ * @param path ParsedPath -- some path to some markdown resource
+ * @param root string -- root path that the result should be relative to
+ * @returns string a relative path to a directory for the given resource
+ *
+ * Remove leading directories from path to get a relative URI. Also removes any
+ * "index" if present since the server will look for an "index.html" in
+ * matching path location
+ */
+function getOutputRelativePath(
+  { dir, name }: ParsedPath,
+  root: string,
+): string {
   let res = ""
-  console.log(`making ${dir}/${name} relative...`)
+  console.info(`making ${dir}/${name} relative...`)
 
   // starts w/ root means it's not relative --
   // FIXME: this probably should be a lot more robust, but good enough for now
@@ -288,13 +321,9 @@ function getRollupInputKey({ dir, name }: ParsedPath, root: string): string {
     res += `${name}`
   }
 
-  console.log(`done: ${res}`)
+  console.info(`done: ${res}`)
 
   return res
-}
-
-function getURL(path: ParsedPath, root: string): string {
-  return `/${getRollupInputKey(path, root)}/`
 }
 
 function getHtmlId({ dir, name }: ParsedPath): string {
@@ -355,7 +384,11 @@ function indexMdMiddleware(
           let html = await mdToDynHtml(src, root, htmlTemplate, cssFile)
           // have vite apply standard html transforms
           // (hopefully this includes adding the markdown source to the module graph?)
+          console.info(`${url} before vite's transform:`)
+          console.dir(html)
           html = await server.transformIndexHtml(url, html, req.originalUrl)
+          console.info(`${url} served as:`)
+          console.dir(html)
           return send(req, res, html, "html", { headers })
         } else {
           throw TypeError(
@@ -391,7 +424,7 @@ async function mdToDynHtml(
   const document = createDocument(htmlTemplate, cssFile)
   const body = document.querySelector("body")!
 
-  const mdSrcRelative = getRelativePath(parse(mdSrcPath), root)
+  const mdSrcRelative = getInputRelativePath(parse(mdSrcPath), root)
 
   const scriptTag = document.createElement("script")
   scriptTag.type = "module"
@@ -427,8 +460,9 @@ function createDocument(htmlTemplate: string, cssFile?: string): Document {
   return document
 }
 
-function getRelativePath({ dir, base }: ParsedPath, root: string): string {
+function getInputRelativePath({ dir, base }: ParsedPath, root: string): string {
   let res = ""
+  console.info(`making ${dir}/${base} relative...`)
 
   // starts w/ root means it's not relative --
   // FIXME: this probably should be a lot more robust, but good enough for now
@@ -439,7 +473,13 @@ function getRelativePath({ dir, base }: ParsedPath, root: string): string {
     res += dir
   }
 
-  res += `/${base}`
+  // a separating `/` is needed if the relative path is in a subdir
+  if (res.length > 0) {
+    res += "/"
+  }
+  res += `${base}`
+
+  console.info(`done: ${res}`)
 
   return res
 }
