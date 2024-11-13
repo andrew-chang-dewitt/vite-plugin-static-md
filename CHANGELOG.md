@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.1](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.2.0...v0.2.1) (2024-11-13)
+
+
+### Bug Fixes
+
+* include logger customization on build & ensure setting info level if user supplied ([15935fb](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/15935fb83448fc4653c9d6d219de3ebf7a4db18a))
+
 ## [0.2.0](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.1.3...v0.2.0) (2024-11-13)
 
 
