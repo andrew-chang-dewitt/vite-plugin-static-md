@@ -12,7 +12,6 @@
     /* Modules */
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "allowImportingTsExtensions": true,
 
     /* Emit */
     "declaration": true,

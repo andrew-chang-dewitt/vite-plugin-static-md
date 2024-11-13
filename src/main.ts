@@ -28,7 +28,7 @@ import type {
   ViteDevServer,
 } from "vite"
 
-import { createLogger } from "./logging.ts"
+import { createLogger } from "./logging.js"
 
 const HTML_TEMPLATE = `\
 <html lang="en">
