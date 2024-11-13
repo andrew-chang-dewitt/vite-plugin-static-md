@@ -14,7 +14,7 @@
  * - [ ] [TODO]Create sitemaps & feeds from markdown files.
  */
 
-import { readFile, readdir, stat } from "fs/promises"
+import { glob, readFile, readdir, stat } from "fs/promises"
 import { ParsedPath, parse, resolve } from "path"
 
 import { JSDOM } from "jsdom"
@@ -29,6 +29,7 @@ import type {
 } from "vite"
 
 import { createLogger } from "./logging.js"
+import { dir } from "./utils.js"
 
 const HTML_TEMPLATE = `\
 <html lang="en">
@@ -46,8 +47,14 @@ const HTML_TEMPLATE = `\
 let logger = createLogger()
 
 export interface Options {
-  htmlTemplate?: string
-  cssFile?: string
+  cssFile?: string // exact path only
+  excludes: string | string[] | ExcludePatterns // paths or globs
+  htmlTemplate?: string // exact path only
+}
+
+export interface ExcludePatterns {
+  serve: string[] // paths or globs
+  build: string[] // paths or globs
 }
 
 export default function staticMd(opts: Options): Plugin[] {
@@ -85,7 +92,10 @@ export default function staticMd(opts: Options): Plugin[] {
           : HTML_TEMPLATE
 
         // walk filetree at root & get absolute paths to every markdown file
-        paths = await getPaths(root)
+        const exclude_list = await expandExcludes(opts.excludes)
+        logger.info("excludes list expanded to:")
+        logger.dir(exclude_list)
+        paths = await getPaths(root, exclude_list)
         pages = await getPages(paths, root, "dev")
         logger.dir(pages)
       },
@@ -115,7 +125,10 @@ export default function staticMd(opts: Options): Plugin[] {
           ? await readFile(opts.htmlTemplate, { encoding: "utf8" })
           : HTML_TEMPLATE
         // walk filetree at root & get absolute paths to every markdown file
-        paths = await getPaths(root)
+        const exclude_list = await expandExcludes(opts.excludes, "build")
+        logger.info("excludes list expanded to:")
+        logger.dir(exclude_list)
+        paths = await getPaths(root, exclude_list)
         pages = await getPages(paths, root, "build")
         filter = (id) => Object.keys(pages).includes(id as string)
 
@@ -163,7 +176,67 @@ function resolveRoot(root: string | undefined): string {
   return root ? resolve(root) : process.cwd()
 }
 
-async function getPaths(root: string): Promise<string[]> {
+// expand given exclude items into a flat array of fully resolved paths
+async function expandExcludes(
+  list?: string | string[] | ExcludePatterns,
+  mode?: "dev" | "build",
+): Promise<string[]> {
+  let res: string[] = []
+
+  if (!list) return res
+
+  if (isString(list)) {
+    res = [list]
+  } else if (isArrayOf(list, isString)) {
+    res = list
+  } else if (isExcludePatterns(list)) {
+    let isBuild = mode === "build" ? true : false
+    res = isBuild
+      ? [
+          ...(await expandExcludes(list.build)),
+          ...(await expandExcludes(list.serve)),
+        ]
+      : await expandExcludes(list.serve)
+  } else {
+    logger.warn(
+      "excludes must be of type `string | string[] | { serve: string | string[], build: string | string[] }`\n" +
+        `ignoring given value of ${dir(list)}`,
+    )
+  }
+
+  return (
+    await Promise.all(
+      res.map(async (path) => {
+        let res: string[] = []
+
+        for await (const p of glob(path)) {
+          res.push(p)
+        }
+
+        return res.map((p) => resolve(p))
+      }),
+    )
+  ).flat()
+}
+
+function isString(obj: any): obj is string {
+  return typeof obj == "string" || obj instanceof String
+}
+
+function isArrayOf<T>(obj: any, checkT: (obj: any) => obj is T): obj is T[] {
+  return Array.isArray(obj) && obj.every(checkT)
+}
+
+function isExcludePatterns(obj: any): obj is ExcludePatterns {
+  return (
+    "serve" in obj &&
+    "build" in obj &&
+    (isString(obj.serve) || isArrayOf(obj.serve, isString)) &&
+    (isString(obj.build) || isArrayOf(obj.build, isString))
+  )
+}
+
+async function getPaths(root: string, exclude: string[]): Promise<string[]> {
   const files = await readdir(root)
 
   let paths: string[] = []
@@ -174,10 +247,11 @@ async function getPaths(root: string): Promise<string[]> {
 
     if (isDir) {
       // if file is directory, recur
-      paths = [...paths, ...(await getPaths(file))]
+      paths = [...paths, ...(await getPaths(file, exclude))]
     } else if (parse(file).ext === ".md") {
-      // if file is markdown, add to results
-      paths.push(resolve(root, file))
+      // if file is markdown & not excluded, add to results
+      const path = resolve(root, file)
+      if (!exclude.includes(path)) paths.push(path)
     } // otherwise, ignore file
   }
 

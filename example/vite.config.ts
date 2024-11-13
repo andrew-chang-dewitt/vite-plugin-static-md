@@ -18,10 +18,15 @@ export default {
       },
     },
   },
+  logLevel: "info",
   plugins: [
     staticMd({
-      htmlTemplate: resolve(SRC_ROOT, "md-template.html"),
+      excludes: {
+        serve: "**/excluded-always*",
+        build: ["src/pages/excluded-prod.md", "**/glob-excluded/**/*"],
+      },
       cssFile: resolve(SRC_ROOT, "styles/index.css"),
+      htmlTemplate: resolve(SRC_ROOT, "md-template.html"),
     }),
   ],
   resolve: {
