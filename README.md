@@ -75,14 +75,19 @@ export default {
 
 ## Options:
 
-This plugin can be configured to take a custom html template file as well as to inject a global stylesheet into every html page generated from your markdown.
+This plugin can be configured to customimze some behaviours.
+
+### Options type:
 
 ```typescript
 export interface Options {
-  htmlTemplate?: string // path to html template file
-  cssFile?: string // path to global stylesheet file
+  cssFile?: string // exact path only
+  excludes: string | string[] | ExcludePatterns // paths or globs
+  htmlTemplate?: string // exact path only
 }
 ```
+
+### `Options.htmlTemplate?: string`
 
 The file given to htmlTemplate must specify where the html transposed from your markdown sources should go using an element with `id="markdown-target"`.
 For example, the default html template this plugin uses when no template file is given looks like this:
@@ -97,4 +102,20 @@ For example, the default html template this plugin uses when no template file is
     <article id="markdown-target"></article>
   </body>
 </html>
+```
+
+### `Options.cssFile?: string`
+
+If specified, this option injects the css file into the html generated from each markdown file.
+
+### `Options.excludes?: string | string[] | ExcludePatterns`
+
+If specified, this option tells the plugin to ignore the file(s) specified.
+When given as an object matching the `ExcludePatterns` type, it tells the plugin to ignore files given to `excludes.serve` when using the dev server and to ignore files given to both `excludes.serve` & `excludes.build` when building for production.
+
+```typescript
+export interface ExcludePatterns {
+  serve: string[] // paths or globs
+  build: string[] // paths or globs
+}
 ```
