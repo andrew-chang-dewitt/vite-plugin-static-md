@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.4](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.2.3...v0.2.4) (2024-11-14)
+
+
+### Features
+
+* index.html in root no longer necessary ([e3912bd](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/e3912bd5e2899835061a913f9c26dbc00e811ad3))
+
+
+### Bug Fixes
+
+* correct type of ExcludePatterns to allow single strings ([9f6a344](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/9f6a34420fe3fd3d35dc75deff44433c081042a0))
+
 ## [0.2.3](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.2.2...v0.2.3) (2024-11-14)
 
 
