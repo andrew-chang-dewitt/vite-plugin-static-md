@@ -48,7 +48,7 @@ let logger = createLogger()
 
 export interface Options {
   cssFile?: string // exact path only
-  excludes: string | string[] | ExcludePatterns // paths or globs
+  excludes?: string | string[] | ExcludePatterns // paths or globs
   htmlTemplate?: string // exact path only
 }
 
