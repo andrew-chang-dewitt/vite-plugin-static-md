@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.3](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.2.2...v0.2.3) (2024-11-14)
+
+
+### Bug Fixes
+
+* excludes is now optional ([d451be4](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/d451be44c24f88b962293bfa8e5386842c16830c))
+* options object now optional ([9af3000](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/9af3000a99946e1ba3e8d1b555758030cb816c34))
+
 ## [0.2.2](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.2.1...v0.2.2) (2024-11-13)
 
 
