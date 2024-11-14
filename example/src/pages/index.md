@@ -1,0 +1,5 @@
+- [excluded-always (this link should be dead always)/](./excluded-always/)
+- [excluded-prod (this link should be dead only in prod build)/](./excluded-prod/)
+- [other/](./other/)
+- [page/](./page/)
+- [page/nested/](./page/nested/)

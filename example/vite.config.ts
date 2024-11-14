@@ -13,7 +13,6 @@ export default {
     outDir: OUT_DIR,
     rollupOptions: {
       input: {
-        main: resolve(HTML_ROOT, "index.html"),
         other: resolve(HTML_ROOT, "other/index.html"),
       },
     },

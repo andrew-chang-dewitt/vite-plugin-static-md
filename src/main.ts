@@ -72,20 +72,15 @@ export default function staticMd(opts?: Options): Plugin[] {
       apply: "serve",
 
       // setup log level if user provides a value
-      config(userConfig): UserConfig {
+      async config(userConfig): Promise<UserConfig> {
         // setup logger if not vite's default
         if (userConfig.logLevel) {
           logger = createLogger(userConfig.logLevel)
         }
 
-        // we don't actually modify the config at all here
-        return userConfig
-      },
-
-      // get markdown pages from config & setup log level
-      async configResolved(userConfig): Promise<void> {
         // get web root dir from config
-        root = userConfig.root
+        // or use default of same dir as the vite config file
+        root = userConfig.root || resolve(".")
         // load given html template from file, or use default
         htmlTemplate = opts?.htmlTemplate
           ? await readFile(opts.htmlTemplate, { encoding: "utf8" })
@@ -98,6 +93,20 @@ export default function staticMd(opts?: Options): Plugin[] {
         paths = await getPaths(root, exclude_list)
         pages = await getPages(paths, root, "dev")
         logger.dir(pages)
+
+        const res = {
+          build: {
+            rollupOptions: {
+              // build rollup input option object from absolute paths
+              input: buildInputObj(paths, root),
+            },
+          },
+        }
+
+        logger.info("config modified to include")
+        logger.dir(res.build.rollupOptions)
+
+        return res
       },
 
       // configure custom middleware to point urls matching `pages` to their
@@ -363,7 +372,9 @@ function buildInputObj(
  * Defers to `getOutputRelativePath(...)`
  */
 function getRollupInputKey(path: ParsedPath, root: string): string {
-  return getOutputRelativePath(path, root)
+  const out = getOutputRelativePath(path, root)
+
+  return out.length === 0 ? "main" : out
 }
 
 /**
@@ -375,7 +386,8 @@ function getRollupInputKey(path: ParsedPath, root: string): string {
  * `getOutputRelativePath(...)` function
  */
 function getURL(path: ParsedPath, root: string): string {
-  return `/${getOutputRelativePath(path, root)}/`
+  const out = getOutputRelativePath(path, root)
+  return out.length === 0 ? "/" : `/${out}/`
 }
 
 /**
@@ -462,8 +474,10 @@ function indexMdMiddleware(
       Object.keys(pages).includes(url) &&
       req.headers["sec-fetch-dest"] !== "script"
     ) {
+      logger.info(`handling ${url}`)
       // get the source id from the page url path
       let { src } = pages[url]
+      logger.info(`matched ${src}`)
 
       // then the rest here gets changed to simply get the same headers
       const headers = isDev
