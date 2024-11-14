@@ -57,12 +57,12 @@ export interface ExcludePatterns {
   build: string[] // paths or globs
 }
 
-export default function staticMd(opts: Options): Plugin[] {
+export default function staticMd(opts?: Options): Plugin[] {
   let root: string
   let paths: string[] = []
   let pages: Record<string, Page> = {}
   let htmlTemplate: string
-  let cssFile = opts.cssFile
+  let cssFile = opts?.cssFile
 
   let filter: (id: unknown) => boolean
 
@@ -87,12 +87,12 @@ export default function staticMd(opts: Options): Plugin[] {
         // get web root dir from config
         root = userConfig.root
         // load given html template from file, or use default
-        htmlTemplate = opts.htmlTemplate
+        htmlTemplate = opts?.htmlTemplate
           ? await readFile(opts.htmlTemplate, { encoding: "utf8" })
           : HTML_TEMPLATE
 
         // walk filetree at root & get absolute paths to every markdown file
-        const exclude_list = await expandExcludes(opts.excludes)
+        const exclude_list = await expandExcludes(opts?.excludes)
         logger.info("excludes list expanded to:")
         logger.dir(exclude_list)
         paths = await getPaths(root, exclude_list)
@@ -121,11 +121,11 @@ export default function staticMd(opts: Options): Plugin[] {
         // get root from config or find default
         root = resolveRoot(userConfig.root)
         // load given html template from file, or use default
-        htmlTemplate = opts.htmlTemplate
+        htmlTemplate = opts?.htmlTemplate
           ? await readFile(opts.htmlTemplate, { encoding: "utf8" })
           : HTML_TEMPLATE
         // walk filetree at root & get absolute paths to every markdown file
-        const exclude_list = await expandExcludes(opts.excludes, "build")
+        const exclude_list = await expandExcludes(opts?.excludes, "build")
         logger.info("excludes list expanded to:")
         logger.dir(exclude_list)
         paths = await getPaths(root, exclude_list)
