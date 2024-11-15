@@ -61,7 +61,7 @@ export interface Options {
 }
 
 export interface ExcludePatterns {
-  serve: string | string[] // paths or globs
+  serve?: string | string[] // paths or globs
   build: string | string[] // paths or globs
 }
 
