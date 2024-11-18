@@ -82,7 +82,7 @@ This plugin can be configured to customimze some behaviours.
 ```typescript
 export interface Options {
   cssFile?: string // exact path only
-  excludes: string | string[] | ExcludePatterns // paths or globs
+  excludes?: string | string[] | ExcludePatterns // paths or globs
   htmlTemplate?: string // exact path only
 }
 ```
@@ -115,7 +115,7 @@ When given as an object matching the `ExcludePatterns` type, it tells the plugin
 
 ```typescript
 export interface ExcludePatterns {
-  serve: string[] // paths or globs
-  build: string[] // paths or globs
+  serve?: string | string[] // paths or globs
+  build: string | string[] // paths or globs
 }
 ```
