@@ -19,7 +19,9 @@
  * - [ ] [TODO] create a cli that loads a given file as the sole md source into
  *       the default template & launches a dev server or generates html & pdf
  *       outputs
- * - [ ] [TODO] frontmatter support?
+ * - [ ] [TODO] frontmatter support to get page title, summary, publish date, & other information
+ * - [ ] toc support
+ * - [ ] toc as page in directory using data from frontmatter of descendant pages
  */
 
 import { glob, readFile, readdir, stat } from "fs/promises"
@@ -30,6 +32,7 @@ import { marked } from "marked"
 import { send } from "vite"
 import type {
   Connect,
+  Logger,
   Plugin,
   PreviewServer,
   UserConfig,
@@ -38,8 +41,9 @@ import type {
 
 import { createLogger } from "./logging.js"
 import { dir } from "./utils.js"
+import { modifyConfig } from "./config.js"
 
-const HTML_TEMPLATE = `\
+export const DEFAULT_HTML_TEMPLATE = `\
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -81,40 +85,11 @@ export default function staticMd(opts?: Options): Plugin[] {
 
       // setup log level if user provides a value
       async config(userConfig): Promise<UserConfig> {
-        // setup logger if not vite's default
-        if (userConfig.logLevel) {
-          logger = createLogger(userConfig.logLevel)
-        }
+        const configured,
+          effects = modifyConfig(userConfig)
+        logger = effects.logger
 
-        // get web root dir from config
-        // or use default of same dir as the vite config file
-        root = userConfig.root || resolve(".")
-        // load given html template from file, or use default
-        htmlTemplate = opts?.htmlTemplate
-          ? await readFile(opts.htmlTemplate, { encoding: "utf8" })
-          : HTML_TEMPLATE
-
-        // walk filetree at root & get absolute paths to every markdown file
-        const exclude_list = await expandExcludes(opts?.excludes)
-        logger.info("excludes list expanded to:")
-        logger.dir(exclude_list)
-        paths = await getPaths(root, exclude_list)
-        pages = await getPages(paths, root, "dev")
-        logger.dir(pages)
-
-        const res = {
-          build: {
-            rollupOptions: {
-              // build rollup input option object from absolute paths
-              input: buildInputObj(paths, root),
-            },
-          },
-        }
-
-        logger.info("config modified to include")
-        logger.dir(res.build.rollupOptions)
-
-        return res
+        return configured
       },
 
       // configure custom middleware to point urls matching `pages` to their
@@ -140,7 +115,7 @@ export default function staticMd(opts?: Options): Plugin[] {
         // load given html template from file, or use default
         htmlTemplate = opts?.htmlTemplate
           ? await readFile(opts.htmlTemplate, { encoding: "utf8" })
-          : HTML_TEMPLATE
+          : DEFAULT_HTML_TEMPLATE
         // walk filetree at root & get absolute paths to every markdown file
         const exclude_list = await expandExcludes(opts?.excludes, "build")
         logger.info("excludes list expanded to:")
@@ -275,7 +250,7 @@ async function getPaths(root: string, exclude: string[]): Promise<string[]> {
   return paths
 }
 
-interface Page {
+export interface Page {
   src: string
   id: string
   md: string
