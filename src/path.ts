@@ -110,3 +110,30 @@ export function getRollupInputKey(path: ParsedPath, root: string): string {
 
   return out.length === 0 ? "main" : out
 }
+
+export function getInputRelativePath(
+  { dir, base }: ParsedPath,
+  root: string,
+): string {
+  let res = ""
+  logger().info(`making ${dir}/${base} relative...`)
+
+  // starts w/ root means it's not relative --
+  // FIXME: this probably should be a lot more robust, but good enough for now
+  if (dir.startsWith(root)) {
+    res += dir.slice(root.length + 1) // +1 to remove leading `/` too
+  } // otherwise we're already relative?
+  else {
+    res += dir
+  }
+
+  // a separating `/` is needed if the relative path is in a subdir
+  if (res.length > 0) {
+    res += "/"
+  }
+  res += `${base}`
+
+  logger().info(`done: ${res}`)
+
+  return res
+}

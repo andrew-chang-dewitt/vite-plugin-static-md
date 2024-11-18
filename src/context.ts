@@ -1,6 +1,6 @@
 import { readFile } from "fs/promises"
 
-import { DEFAULT_HTML_TEMPLATE, Options } from "./main.js"
+import { Options } from "./main.js"
 import { Page } from "./page.js"
 
 export interface DefaultContext extends Options {
@@ -50,3 +50,15 @@ async function loadHtmlTemplate(filename?: string): Promise<string> {
     ? await readFile(filename, { encoding: "utf8" })
     : DEFAULT_HTML_TEMPLATE
 }
+
+const DEFAULT_HTML_TEMPLATE = `\
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <body>
+    <article id="markdown-target"></article>
+  </body>
+</html>
+`

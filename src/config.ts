@@ -13,18 +13,6 @@ import { getPages } from "./page.js"
 import { getHtmlId, getPaths, getRollupInputKey } from "./path.js"
 import { dir } from "./utils.js"
 
-export const DEFAULT_HTML_TEMPLATE = `\
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  </head>
-  <body>
-    <article id="markdown-target"></article>
-  </body>
-</html>
-`
-
 let logger: ExtendedLogger = getLogger()
 
 export async function modifyConfig(

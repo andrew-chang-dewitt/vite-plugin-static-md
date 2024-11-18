@@ -1,5 +1,8 @@
 import { JSDOM } from "jsdom"
 import { marked } from "marked"
+import { parse } from "path"
+
+import { getInputRelativePath } from "./path.js"
 
 export async function mdToStaticHtml(
   md: string,
