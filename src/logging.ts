@@ -1,11 +1,17 @@
-import { LogLevel, Logger, createLogger as createViteLogger } from "vite"
+import {
+  LogLevel,
+  Logger as ViteLogger,
+  createLogger as createViteLogger,
+} from "vite"
 import { dir } from "./utils.js"
 
-interface ExtendedLogger extends Logger {
+let _logger: ExtendedLogger
+
+export interface ExtendedLogger extends ViteLogger {
   dir: (obj: Object) => void
 }
 
-export function createLogger(level?: LogLevel): ExtendedLogger {
+function createLogger(level?: LogLevel): ExtendedLogger {
   return {
     // default to warn to avoid cluttering user logs
     // unless user specifies they want info or other
@@ -16,3 +22,30 @@ export function createLogger(level?: LogLevel): ExtendedLogger {
     },
   }
 }
+
+export function logger(level?: LogLevel): ExtendedLogger {
+  if (!_logger) {
+    _logger = createLogger(level)
+  }
+
+  return _logger
+}
+
+export function replace(level?: LogLevel): ExtendedLogger {
+  _logger = createLogger(level)
+
+  return _logger
+}
+
+// class Logger {
+//   static #instance: Logger
+//   viteLogger: ViteLogger
+//
+//   private constructor(level?: LogLevel) {
+//     this.viteLogger = createViteLogger(level ?? "warn")
+//   }
+//
+//   public static get instance(): Logger {
+//
+//   }
+// }
