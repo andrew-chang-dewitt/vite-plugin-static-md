@@ -24,24 +24,23 @@
  * - [ ] toc as page in directory using data from frontmatter of descendant pages
  */
 
-import { glob, readFile, readdir, stat } from "fs/promises"
-import { ParsedPath, parse, resolve } from "path"
+import { ParsedPath, parse } from "path"
 
 import { JSDOM } from "jsdom"
 import { marked } from "marked"
 import { send } from "vite"
 import type {
   Connect,
-  Logger,
   Plugin,
   PreviewServer,
   UserConfig,
   ViteDevServer,
 } from "vite"
 
-import { createLogger } from "./logging.js"
-import { dir } from "./utils.js"
 import { modifyConfig } from "./config.js"
+import { Context } from "./context.js"
+import { Page } from "./page.js"
+import { logger } from "./logging.js"
 
 export const DEFAULT_HTML_TEMPLATE = `\
 <html lang="en">
@@ -55,9 +54,6 @@ export const DEFAULT_HTML_TEMPLATE = `\
 </html>
 `
 
-// init a default logger instance, will replace w/ custom level if given in config
-let logger = createLogger()
-
 export interface Options {
   cssFile?: string // exact path only
   excludes?: string | string[] | ExcludePatterns // paths or globs
@@ -70,13 +66,7 @@ export interface ExcludePatterns {
 }
 
 export default function staticMd(opts?: Options): Plugin[] {
-  let root: string
-  let paths: string[] = []
-  let pages: Record<string, Page> = {}
-  let htmlTemplate: string
-  let cssFile = opts?.cssFile
-
-  let filter: (id: unknown) => boolean
+  let ctx: Context
 
   return [
     {
@@ -85,18 +75,23 @@ export default function staticMd(opts?: Options): Plugin[] {
 
       // setup log level if user provides a value
       async config(userConfig): Promise<UserConfig> {
-        const configured,
-          effects = modifyConfig(userConfig)
-        logger = effects.logger
+        const [builtContext, cfg] = await modifyConfig(userConfig, opts)
+        ctx = builtContext
 
-        return configured
+        return cfg
       },
 
       // configure custom middleware to point urls matching `pages` to their
       // markdown sources & transform those sources into index.html files
       configureServer(server) {
         server.middlewares.use(
-          indexMdMiddleware(server, root, pages, htmlTemplate, cssFile),
+          indexMdMiddleware(
+            server,
+            ctx.root,
+            ctx.pages,
+            ctx.htmlTemplate,
+            ctx.cssFile,
+          ),
         )
       },
     },
@@ -106,42 +101,19 @@ export default function staticMd(opts?: Options): Plugin[] {
 
       // edit user config to add all markdown files as rollup entry points
       async config(userConfig): Promise<UserConfig> {
-        // setup logger if not vite's default
-        if (userConfig.logLevel) {
-          logger = createLogger(userConfig.logLevel)
-        }
-        // get root from config or find default
-        root = resolveRoot(userConfig.root)
-        // load given html template from file, or use default
-        htmlTemplate = opts?.htmlTemplate
-          ? await readFile(opts.htmlTemplate, { encoding: "utf8" })
-          : DEFAULT_HTML_TEMPLATE
-        // walk filetree at root & get absolute paths to every markdown file
-        const exclude_list = await expandExcludes(opts?.excludes, "build")
-        logger.info("excludes list expanded to:")
-        logger.dir(exclude_list)
-        paths = await getPaths(root, exclude_list)
-        pages = await getPages(paths, root, "build")
-        filter = (id) => Object.keys(pages).includes(id as string)
+        const [builtContext, cfg] = await modifyConfig(
+          userConfig,
+          opts,
+          "build",
+        )
+        ctx = builtContext
 
-        const res = {
-          build: {
-            rollupOptions: {
-              // build rollup input option object from absolute paths
-              input: buildInputObj(paths, root),
-            },
-          },
-        }
-
-        logger.info("config modified to include")
-        logger.dir(res.build.rollupOptions)
-
-        return res
+        return cfg
       },
 
       resolveId(src: string) {
         // sources not in pages map are skipped
-        if (!filter(src)) return null
+        if (!ctx.filter(src)) return null
         // ensure sources given in pages map are resolved,
         // even if the file doesn't exist
         return src
@@ -149,145 +121,17 @@ export default function staticMd(opts?: Options): Plugin[] {
 
       async load(id: string) {
         // ids not in pages map are skipped
-        if (!filter(id)) return null
+        if (!ctx.filter(id)) return null
 
-        const { md } = pages[id]
+        const { md } = ctx.pages[id]
         const res = {
-          code: await mdToStaticHtml(md, htmlTemplate, cssFile),
+          code: await mdToStaticHtml(md, ctx.htmlTemplate, ctx.cssFile),
         }
 
         return res
       },
     },
   ]
-}
-
-// resolve root, using same technique as vite, found in source:
-// https://github.com/vitejs/vite/blob/5f52bc8b9e4090cdcaf3f704278db30dafc825cc/packages/vite/src/node/config.ts#L527
-function resolveRoot(root: string | undefined): string {
-  return root ? resolve(root) : process.cwd()
-}
-
-// expand given exclude items into a flat array of fully resolved paths
-async function expandExcludes(
-  list?: string | string[] | ExcludePatterns,
-  mode?: "dev" | "build",
-): Promise<string[]> {
-  let res: string[] = []
-
-  if (!list) return res
-
-  if (isString(list)) {
-    res = [list]
-  } else if (isArrayOf(list, isString)) {
-    res = list
-  } else if (isExcludePatterns(list)) {
-    let isBuild = mode === "build" ? true : false
-    res = isBuild
-      ? [
-          ...(await expandExcludes(list.build)),
-          ...(await expandExcludes(list.serve)),
-        ]
-      : await expandExcludes(list.serve)
-  } else {
-    logger.warn(
-      "excludes must be of type `string | string[] | { serve: string | string[], build: string | string[] }`\n" +
-        `ignoring given value of ${dir(list)}`,
-    )
-  }
-
-  return (
-    await Promise.all(
-      res.map(async (path) => {
-        let res: string[] = []
-
-        for await (const p of glob(path)) {
-          res.push(p)
-        }
-
-        return res.map((p) => resolve(p))
-      }),
-    )
-  ).flat()
-}
-
-function isString(obj: any): obj is string {
-  return typeof obj == "string" || obj instanceof String
-}
-
-function isArrayOf<T>(obj: any, checkT: (obj: any) => obj is T): obj is T[] {
-  return Array.isArray(obj) && obj.every(checkT)
-}
-
-function isExcludePatterns(obj: any): obj is ExcludePatterns {
-  return (
-    "serve" in obj &&
-    "build" in obj &&
-    (isString(obj.serve) || isArrayOf(obj.serve, isString)) &&
-    (isString(obj.build) || isArrayOf(obj.build, isString))
-  )
-}
-
-async function getPaths(root: string, exclude: string[]): Promise<string[]> {
-  const files = await readdir(root)
-
-  let paths: string[] = []
-
-  for (const f of files) {
-    const file = resolve(root, f)
-    const isDir = await stat(file).then((s) => s.isDirectory())
-
-    if (isDir) {
-      // if file is directory, recur
-      paths = [...paths, ...(await getPaths(file, exclude))]
-    } else if (parse(file).ext === ".md") {
-      // if file is markdown & not excluded, add to results
-      const path = resolve(root, file)
-      if (!exclude.includes(path)) paths.push(path)
-    } // otherwise, ignore file
-  }
-
-  return paths
-}
-
-export interface Page {
-  src: string
-  id: string
-  md: string
-  url: string
-  inputKey: string
-}
-
-async function getPages(
-  paths: string[],
-  root: string,
-  mode: "dev" | "build",
-): Promise<Record<string, Page>> {
-  let pages: Record<string, Page> = {}
-  let key: "url" | "id" = mode === "dev" ? "url" : "id"
-
-  for (const path of paths) {
-    const page = await buildPage(path, root)
-    pages[page[key]] = page
-  }
-
-  return pages
-}
-
-async function buildPage(path: string, root: string): Promise<Page> {
-  const md = await readFile(path, { encoding: "utf8" })
-  const parsed = parse(path)
-  const url = getURL(parsed, root)
-  const id = getHtmlId(parsed)
-  const inputKey = getRollupInputKey(parsed, root)
-
-  return {
-    src: path,
-    id,
-    md,
-    url,
-    inputKey,
-  }
 }
 
 async function mdToStaticHtml(
@@ -334,103 +178,6 @@ function normalizeHtml(code: string): string {
   return res
 }
 
-function buildInputObj(
-  entries: string[],
-  root: string,
-): Record<string, string> {
-  return entries.reduce((ret, entry) => {
-    const filePath = parse(entry)
-    return {
-      ...ret,
-      [getRollupInputKey(filePath, root)]: getHtmlId(filePath),
-    }
-  }, {})
-}
-
-/**
- * @param path ParsedPath -- some path to some markdown resource
- * @param root string -- root path that the result should be relative to
- * @returns string a relative path to a directory for the given resource
- *
- * Defers to `getOutputRelativePath(...)`
- */
-function getRollupInputKey(path: ParsedPath, root: string): string {
-  const out = getOutputRelativePath(path, root)
-
-  return out.length === 0 ? "main" : out
-}
-
-/**
- * @param path ParsedPath -- some path to some markdown resource
- * @param root string -- root path that the result should be relative to
- * @returns string a relative path to a directory for the given resource
- *
- * Ensures leading & trailing slashes are present & defers rest to
- * `getOutputRelativePath(...)` function
- */
-function getURL(path: ParsedPath, root: string): string {
-  const out = getOutputRelativePath(path, root)
-  return out.length === 0 ? "/" : `/${out}/`
-}
-
-/**
- * @param path ParsedPath -- some path to some markdown resource
- * @param root string -- root path that the result should be relative to
- * @returns string a relative path to a directory for the given resource
- *
- * Remove leading directories from path to get a relative URI. Also removes any
- * "index" if present since the server will look for an "index.html" in
- * matching path location
- */
-function getOutputRelativePath(
-  { dir, name }: ParsedPath,
-  root: string,
-): string {
-  let res = ""
-  logger.info(`making ${dir}/${name} relative...`)
-
-  // starts w/ root means it's not relative --
-  // FIXME: this probably should be a lot more robust, but good enough for now
-  if (dir.startsWith(root)) {
-    res += dir.slice(root.length + 1) // +1 to remove leading `/` too
-  } // otherwise we're already relative?
-  else {
-    res += dir
-  }
-
-  // if filename is `index`, then relative URI is the containing directory:
-  //   e.g. `some/page/index.md` => `some/page/`
-  // otherwise, relative uri should include filename:
-  //   e.g. `some/page/nested.md` => `some/page/nested/`
-  if (name !== "index") {
-    // a separating `/` is needed if the relative path is in a subdir
-    if (res.length > 0) {
-      res += "/"
-    }
-    res += `${name}`
-  }
-
-  logger.info(`done: ${res}`)
-
-  return res
-}
-
-function getHtmlId({ dir, name }: ParsedPath): string {
-  let res = `${dir}/${name}`
-
-  // if filename is `index`, then relative URI is the containing directory:
-  //   e.g. `some/page/index.md` => `some/page/`
-  // otherwise, relative uri should include filename:
-  //   e.g. `some/page/nested.md` => `some/page/nested/`
-  if (name !== "index") {
-    res += `/index`
-  }
-  // assume each md file will be generated into an html file
-  res += ".html"
-
-  return res
-}
-
 // heavily inspired by implementation of indexHtmlMiddleware in vite server
 // https://github.com/vitejs/vite/blob/v5.4.9/packages/vite/src/node/server/middlewares/indexHtml.ts#L414
 // starts at getting something that gets an html "file" from the md Page obj,
@@ -457,10 +204,10 @@ function indexMdMiddleware(
       Object.keys(pages).includes(url) &&
       req.headers["sec-fetch-dest"] !== "script"
     ) {
-      logger.info(`handling ${url}`)
+      logger().info(`handling ${url}`)
       // get the source id from the page url path
       let { src } = pages[url]
-      logger.info(`matched ${src}`)
+      logger().info(`matched ${src}`)
 
       // then the rest here gets changed to simply get the same headers
       const headers = isDev
@@ -475,11 +222,11 @@ function indexMdMiddleware(
           let html = await mdToDynHtml(src, root, htmlTemplate, cssFile)
           // have vite apply standard html transforms
           // (hopefully this includes adding the markdown source to the module graph?)
-          logger.info(`${url} before vite's transform:`)
-          logger.dir(html)
+          logger().info(`${url} before vite's transform:`)
+          logger().dir(html)
           html = await server.transformIndexHtml(url, html, req.originalUrl)
-          logger.info(`${url} served as:`)
-          logger.dir(html)
+          logger().info(`${url} served as:`)
+          logger().dir(html)
           return send(req, res, html, "html", { headers })
         } else {
           throw TypeError(
@@ -553,7 +300,7 @@ function createDocument(htmlTemplate: string, cssFile?: string): Document {
 
 function getInputRelativePath({ dir, base }: ParsedPath, root: string): string {
   let res = ""
-  logger.info(`making ${dir}/${base} relative...`)
+  logger().info(`making ${dir}/${base} relative...`)
 
   // starts w/ root means it's not relative --
   // FIXME: this probably should be a lot more robust, but good enough for now
@@ -570,7 +317,7 @@ function getInputRelativePath({ dir, base }: ParsedPath, root: string): string {
   }
   res += `${base}`
 
-  logger.info(`done: ${res}`)
+  logger().info(`done: ${res}`)
 
   return res
 }

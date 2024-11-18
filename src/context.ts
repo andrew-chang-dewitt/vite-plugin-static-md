@@ -1,33 +1,52 @@
-import { Logger, createLogger } from "vite"
-import { DEFAULT_HTML_TEMPLATE, Options, Page } from "./main.js"
+import { readFile } from "fs/promises"
+
+import { DEFAULT_HTML_TEMPLATE, Options } from "./main.js"
+import { Page } from "./page.js"
 
 export interface DefaultContext extends Options {
-  logger: Logger
+  htmlTemplate: string
+  mode: Mode
   root?: string
-  paths: string[]
-  pages: Record<string, Page>
-  filter?: (id: unknown) => boolean
 }
 
 export interface Context extends DefaultContext {
   root: string
+  paths: string[]
+  pages: Record<string, Page>
   filter: (id: unknown) => boolean
 }
 
-export function initContext(opts: Options): DefaultContext {
+export type Mode = "dev" | "build"
+
+export function isDev(mode: Mode): mode is "dev" {
+  return mode === "dev"
+}
+
+export async function initContext(
+  opts?: Options,
+  mode?: Mode,
+): Promise<DefaultContext> {
   return {
     cssFile: opts?.cssFile,
-    htmlTemplate: DEFAULT_HTML_TEMPLATE,
-    logger: createLogger(),
-    pages: {},
-    paths: [],
+    htmlTemplate: await loadHtmlTemplate(opts?.htmlTemplate),
+    mode: mode ?? "dev",
   }
 }
 
 export function completeContext(
   ctx: DefaultContext,
   root: string,
-  filter: (id: unknown) => boolean,
+  pages: Record<string, Page>,
+  paths: string[],
 ): Context {
-  return { ...ctx, root, filter }
+  const filter = (id: unknown) => Object.keys(pages).includes(id as string)
+
+  return { ...ctx, pages, paths, root, filter }
+}
+
+async function loadHtmlTemplate(filename?: string): Promise<string> {
+  // load given html template from file, or use default
+  return filename
+    ? await readFile(filename, { encoding: "utf8" })
+    : DEFAULT_HTML_TEMPLATE
 }
