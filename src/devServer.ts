@@ -13,13 +13,14 @@
 import { Connect, PreviewServer, ViteDevServer, send } from "vite"
 
 import { Context } from "./context.js"
-import { mdToDynHtml } from "./html.js"
+import { renderDyn } from "./html.js"
 import { logger } from "./logging.js"
+import { PageData } from "./page.js"
 
 // emit files to the bundle probably
-export function indexMdMiddleware(
+export function indexMdMiddleware<Data extends PageData>(
   server: ViteDevServer | PreviewServer,
-  { root, pages, htmlTemplate, cssFile }: Context,
+  { root, pages, htmlTemplate, cssFile }: Context<Data>,
 ): Connect.NextHandleFunction {
   const isDev = isDevServer(server)
 
@@ -36,8 +37,8 @@ export function indexMdMiddleware(
     ) {
       logger().info(`handling ${url}`)
       // get the source id from the page url path
-      let { src } = pages[url]
-      logger().info(`matched ${src}`)
+      let page = pages[url]
+      logger().info(`matched ${page.src}`)
 
       // then the rest here gets changed to simply get the same headers
       const headers = isDev
@@ -49,7 +50,7 @@ export function indexMdMiddleware(
         // `<filename>.md?raw`, parses it w/ marked before inserting parsed
         // markdown into html template instead of loading from filesystem
         if (isDev) {
-          let html = await mdToDynHtml(src, root, htmlTemplate, cssFile)
+          let html = await renderDyn(page, root, htmlTemplate, cssFile)
           // have vite apply standard html transforms
           // (hopefully this includes adding the markdown source to the module graph?)
           logger().info(`${url} before vite's transform:`)
