@@ -113,10 +113,14 @@ function isArrayOf<T>(obj: any, checkT: (obj: any) => obj is T): obj is T[] {
 }
 
 function isExcludePatterns(obj: any): obj is ExcludePatterns {
+  const serveCorrect =
+    "serve" in obj
+      ? isString(obj.serve) || isArrayOf(obj.serve, isString)
+      : true // serve is optional -> true if not present
+
   return (
-    "serve" in obj &&
+    serveCorrect &&
     "build" in obj &&
-    (isString(obj.serve) || isArrayOf(obj.serve, isString)) &&
     (isString(obj.build) || isArrayOf(obj.build, isString))
   )
 }
