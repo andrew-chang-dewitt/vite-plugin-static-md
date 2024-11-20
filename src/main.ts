@@ -12,7 +12,7 @@
  *   - [x] ...css styles by specifying css files to include.
  *   - [ ] [MAYBE]...markdown rendering using custom markdown renderer functions.
  * - [ ] [TODO]Create sitemaps & feeds from markdown files.
- * - [ ] inline imports to sibling assets--e.g. for some <file>.md, if there's a
+ * - [x] inline imports to sibling assets--e.g. for some <file>.md, if there's a
  *       <file>.css or <file>.(ts|js) next to it, then imports of both will be
  *       added to the output html
  * - [ ] create a template for initing new projects set up for this easily

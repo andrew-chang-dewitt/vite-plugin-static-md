@@ -120,9 +120,7 @@ export interface ExcludePatterns {
 }
 ```
 
-## Features:
-
-### Frontmatter support:
+## Frontmatter support:
 
 Frontmatter yaml will be parsed according the following structure:
 
@@ -138,18 +136,27 @@ export interface PageData {
 
 These attributes are then used to generate the following html snippets to be included in the output html, along with the transpiled markdown:
 
-#### `PageData.title: string`
+### `PageData.title: string`
 
 A value to use as the text content for a `<title>` in the rendered html's `<head>`.
 
-#### `PageData.description: string`
+### `PageData.description: string`
 
 A value to use as the text content for a `<meta name="description" content=${description} />` in the rendered html's `<head>`.
 
-#### `PageData.keywords: string[]`
+### `PageData.keywords: string[]`
 
 A value to use as the text content for a `<meta name="keywords" content=${keywords} />` in the rendered html's `<head>`.
 
-#### `PageData.meta: Record<string, string>`
+### `PageData.meta: Record<string, string>`
 
 A mapping of key value pairs to use for creating arbitrary`<meta name=${key} content=${value} />` in the rendered html's `<head>`.
+
+## Sibling imports
+
+This plugin automatically attempts to import any files of the same name, but a different extension, as a markdown source into the resulting html via `vite`.
+As long as there's a file loader capable of importing the filetype to js/ts, then it can be imported.
+
+This allows things like per-file scoping of css for a given `<name>.md` source simply by including a `<name>.css` in the same directory.
+Or if truly static webpages are just a little is a little _too_ static for your (e.g. you'd like a JS widget or something), you can also include scripts via `<name>.(js|ts)`.
+You can find examples of both here in [`/example/src/pages/page`](/example/src/pages/page) for `nested.md` via `nested.css` & `nested.ts`.
