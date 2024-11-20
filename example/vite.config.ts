@@ -1,7 +1,7 @@
 import { resolve } from "path"
 import type { UserConfig } from "vite"
 
-import staticMd from "vite-plugin-static-md"
+import staticMd from "../src/main.js"
 
 const OUT_DIR = resolve(__dirname, "dist")
 const HTML_ROOT = resolve(__dirname, "src/pages")

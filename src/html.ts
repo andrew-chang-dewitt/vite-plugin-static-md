@@ -30,7 +30,14 @@ export async function renderStatic(
   // create script tag for importing css via vite/rollup
   const scriptTag = document.createElement("script")
   scriptTag.type = "module"
-  scriptTag.text = `import "$/styles/index.css"`
+  scriptTag.text =
+    `import "$/styles/index.css"` + !!data
+      ? `
+// load frontmatter data
+document.pageData = ${JSON.stringify(data)}
+console.log("frontmatter parsed and added to Document:")
+console.dir(document.pageData)`
+      : ""
 
   targetNode.innerHTML = asHtml
   body.appendChild(scriptTag)
