@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.3.0](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.2.7...v0.3.0) (2024-11-20)
+
+
+### ⚠ BREAKING CHANGES
+
+* import sibling files of same name into resulting html (#7)
+
+### Features
+
+* import sibling files of same name into resulting html ([#7](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/issues/7)) ([0ed4982](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/0ed4982c2073a3b82253bf2d54fcf08d6935fb0a))
+
 ## [0.2.7](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.2.6...v0.2.7) (2024-11-20)
 
 
