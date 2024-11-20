@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.6](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.2.5...v0.2.6) (2024-11-20)
+
+
+### Features
+
+* frontmatter data populates head elements ([#6](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/issues/6)) ([a797c75](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/a797c757c3dc0553dd588bdb5483d7638731ba0d))
+
 ## [0.2.5](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.2.4...v0.2.5) (2024-11-15)
 
 
