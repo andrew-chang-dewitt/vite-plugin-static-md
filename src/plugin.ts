@@ -68,7 +68,12 @@ export function plugin(opts?: Options): Plugin[] {
 
         const page = ctx.pages[id]
         const res = {
-          code: await renderStatic(page, ctx.htmlTemplate, ctx.cssFile),
+          code: await renderStatic(
+            page,
+            ctx.root,
+            ctx.htmlTemplate,
+            ctx.cssFile,
+          ),
         }
 
         return res
