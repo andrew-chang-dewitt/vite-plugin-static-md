@@ -119,3 +119,37 @@ export interface ExcludePatterns {
   build: string | string[] // paths or globs
 }
 ```
+
+## Features:
+
+### Frontmatter support:
+
+Frontmatter yaml will be parsed according the following structure:
+
+```typescript
+export interface PageData {
+  title: string
+  description?: string
+  keywords?: string[]
+  imports?: string[]
+  meta?: Record<string, string>
+}
+```
+
+These attributes are then used to generate the following html snippets to be included in the output html, along with the transpiled markdown:
+
+#### `PageData.title: string`
+
+A value to use as the text content for a `<title>` in the rendered html's `<head>`.
+
+#### `PageData.description: string`
+
+A value to use as the text content for a `<meta name="description" content=${description} />` in the rendered html's `<head>`.
+
+#### `PageData.keywords: string[]`
+
+A value to use as the text content for a `<meta name="keywords" content=${keywords} />` in the rendered html's `<head>`.
+
+#### `PageData.meta: Record<string, string>`
+
+A mapping of key value pairs to use for creating arbitrary`<meta name=${key} content=${value} />` in the rendered html's `<head>`.
