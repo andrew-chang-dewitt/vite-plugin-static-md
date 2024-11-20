@@ -42,7 +42,7 @@ export async function getPages(
   return pages
 }
 
-async function buildPage(path: string, root: string): Promise<Page> {
+export async function buildPage(path: string, root: string): Promise<Page> {
   const fileContents = await readFile(path, { encoding: "utf8" })
   const { content: md, data: uncheckedData } = matter(fileContents)
   // FIXME: should we validate the data's type here?

@@ -2,6 +2,30 @@ import { readFile } from "fs/promises"
 
 import { Options } from "./main.js"
 import { Page } from "./page.js"
+import { logger } from "./logging.js"
+
+let _ctx: Context
+
+export function provider(): Context {
+  if (!!!_ctx)
+    throw new TypeError(
+      "Context not yet initialized, wait until configResolved hook has" +
+        "completed before attempting to access Context object.",
+    )
+
+  return _ctx
+}
+
+export function updateContext(updated: Partial<Context>): Context {
+  _ctx = {
+    ..._ctx,
+    ...updated,
+  }
+  logger().info("context updated")
+  logger().dir(_ctx)
+
+  return _ctx
+}
 
 export interface DefaultContext extends Options {
   htmlTemplate: string
@@ -13,7 +37,7 @@ export interface Context extends DefaultContext {
   root: string
   paths: string[]
   pages: Record<string, Page>
-  filter: (id: unknown) => boolean
+  excluded: string[]
 }
 
 export type Mode = "dev" | "build"
@@ -38,10 +62,28 @@ export function completeContext(
   root: string,
   pages: Record<string, Page>,
   paths: string[],
+  excluded: string[],
 ): Context {
-  const filter = (id: unknown) => Object.keys(pages).includes(id as string)
+  _ctx = {
+    ...ctx,
+    pages,
+    paths,
+    root,
+    excluded,
+  }
 
-  return { ...ctx, pages, paths, root, filter }
+  return _ctx
+}
+
+export function included(id: unknown) {
+  return (
+    Object.keys(provider().pages).includes(id as string) ||
+    provider().paths.includes(id as string)
+  )
+}
+
+export function excluded(id: unknown) {
+  return provider().excluded.includes(id as string)
 }
 
 async function loadHtmlTemplate(filename?: string): Promise<string> {

@@ -10,17 +10,65 @@
  * then processes it through server.transformIndexHtml(...) before sending it
  * on to the client this'll only work for dev though, build/preview needs to
  */
+import { Stats } from "fs"
+import { IncomingMessage, OutgoingHttpHeaders, ServerResponse } from "http"
 import type { Connect, PreviewServer, ViteDevServer } from "vite"
 
-import { Context } from "./context.js"
+import {
+  Context,
+  excluded,
+  included,
+  provider,
+  updateContext,
+} from "./context.js"
 import { renderDyn } from "./html.js"
 import { logger } from "./logging.js"
-import { IncomingMessage, OutgoingHttpHeaders, ServerResponse } from "http"
+import { buildPage } from "./page.js"
+import { getURL } from "./path.js"
+import { parse } from "path"
+
+export async function addFileListener(path: string, _?: Stats) {
+  logger().info(`file added: ${path}`)
+
+  const { root, mode, pages, paths } = provider()
+  const rgx = new RegExp(`^${root}.*\.md$`)
+
+  if (rgx.test(path) && !excluded(path)) {
+    logger().info("file should be included, adding...")
+    // build a page object for the path
+    const page = await buildPage(path, root)
+    // then insert page object into Context.pages
+    const key: "url" | "id" = mode === "dev" ? "url" : "id"
+    updateContext({
+      pages: {
+        ...pages,
+        [page[key]]: page,
+      },
+      paths: [...paths, path],
+    })
+  }
+}
+
+export async function unlinkFileListener(path: string, _?: Stats) {
+  logger().info(`file unlinked: ${path}`)
+
+  const { pages, paths, root } = provider()
+
+  if (included(path)) {
+    logger().info("file was included, removing...")
+    const pageId = getURL(parse(path), root)
+    const { [pageId]: unlinked, ...updatedPages } = pages
+    const updatedPaths = paths.filter((p) => p !== path)
+    updateContext({
+      pages: updatedPages,
+      paths: updatedPaths,
+    })
+  }
+}
 
 // emit files to the bundle probably
 export function indexMdMiddleware(
   server: ViteDevServer | PreviewServer,
-  { root, pages, htmlTemplate, cssFile }: Context,
 ): Connect.NextHandleFunction {
   const isDev = isDevServer(server)
 
@@ -29,6 +77,7 @@ export function indexMdMiddleware(
       return next()
     }
 
+    const { root, pages, htmlTemplate, cssFile }: Context = provider()
     const url = req.url && cleanUrl(req.url)
     if (
       url &&
@@ -53,11 +102,11 @@ export function indexMdMiddleware(
           let html = await renderDyn(page, root, htmlTemplate, cssFile)
           // have vite apply standard html transforms
           // (hopefully this includes adding the markdown source to the module graph?)
-          logger().info(`${url} before vite's transform:`)
-          logger().dir(html)
+          // logger().info(`${url} before vite's transform:`)
+          // logger().dir(html)
           html = await server.transformIndexHtml(url, html, req.originalUrl)
-          logger().info(`${url} served as:`)
-          logger().dir(html)
+          // logger().info(`${url} served as:`)
+          // logger().dir(html)
           return send(req, res, html, headers)
         } else {
           throw TypeError(

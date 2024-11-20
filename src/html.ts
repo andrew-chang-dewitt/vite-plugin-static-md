@@ -160,12 +160,14 @@ import doc from "/${mdSrcRelative}?raw"
 const lines = doc.split(/\\r?\\n/)
 const fence = "---"
 const dataLines = []
-let idx = 1
+let idx = 0
 if ( lines[0] === fence) {
+  idx++
   while (lines[idx] !== fence) {
     dataLines.push(lines[idx])
     idx++
   }
+  idx++
 }
 const data = dataLines.length !== 0 ? parse(dataLines.join("\\n")) : {}
 // page title defaults to filename
@@ -176,7 +178,7 @@ if (!data.title) {
 document.pageData = data
 console.log("frontmatter parsed & added to Document:")
 console.dir(document.pageData)
-const content = lines.slice(idx+1).join("\\n")
+const content = lines.slice(idx).join("\\n")
 console.log("content:", content)
 
 let head = document.querySelector("head")

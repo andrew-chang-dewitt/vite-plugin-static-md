@@ -2,7 +2,7 @@ import { glob } from "fs/promises"
 import { parse, resolve } from "path"
 import type { UserConfig } from "vite"
 
-import { Context, Mode, completeContext, initContext } from "./context.js"
+import { Mode, completeContext, initContext, updateContext } from "./context.js"
 import {
   ExtendedLogger,
   logger as getLogger,
@@ -19,7 +19,7 @@ export async function modifyConfig(
   userConfig: UserConfig,
   opts?: Options,
   mode?: Mode,
-): Promise<[Context, UserConfig]> {
+): Promise<UserConfig> {
   const ictx = await initContext(opts, mode)
 
   // setup logger if not vite's default
@@ -30,10 +30,10 @@ export async function modifyConfig(
   // get web root dir from config
   const root = resolveRoot(userConfig.root)
   // walk filetree at root & get absolute paths to every markdown file
-  const exclude_list = await expandExcludes(opts?.excludes, ictx.mode)
+  const excludeList = await expandExcludes(opts?.excludes, ictx.mode)
   logger.info("excludes list expanded to:")
-  logger.dir(exclude_list)
-  const paths = await getPaths(root, exclude_list)
+  logger.dir(excludeList)
+  const paths = await getPaths(root, excludeList)
   const pages = await getPages(paths, root, ictx)
   logger.dir(pages)
 
@@ -49,9 +49,10 @@ export async function modifyConfig(
   logger.info("config modified to include")
   logger.dir(cfg.build.rollupOptions)
 
-  const ctx = completeContext(ictx, root, pages, paths)
+  const ctx = completeContext(ictx, root, pages, paths, excludeList)
+  updateContext(ctx)
 
-  return [ctx, cfg]
+  return cfg
 }
 
 // resolve root, using same technique as vite, found in source:
