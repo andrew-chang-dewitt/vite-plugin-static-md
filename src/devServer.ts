@@ -10,17 +10,17 @@
  * then processes it through server.transformIndexHtml(...) before sending it
  * on to the client this'll only work for dev though, build/preview needs to
  */
-import { Connect, PreviewServer, ViteDevServer, send } from "vite"
+import type { Connect, PreviewServer, ViteDevServer } from "vite"
 
 import { Context } from "./context.js"
 import { renderDyn } from "./html.js"
 import { logger } from "./logging.js"
-import { PageData } from "./page.js"
+import { IncomingMessage, OutgoingHttpHeaders, ServerResponse } from "http"
 
 // emit files to the bundle probably
-export function indexMdMiddleware<Data extends PageData>(
+export function indexMdMiddleware(
   server: ViteDevServer | PreviewServer,
-  { root, pages, htmlTemplate, cssFile }: Context<Data>,
+  { root, pages, htmlTemplate, cssFile }: Context,
 ): Connect.NextHandleFunction {
   const isDev = isDevServer(server)
 
@@ -58,7 +58,7 @@ export function indexMdMiddleware<Data extends PageData>(
           html = await server.transformIndexHtml(url, html, req.originalUrl)
           logger().info(`${url} served as:`)
           logger().dir(html)
-          return send(req, res, html, "html", { headers })
+          return send(req, res, html, headers)
         } else {
           throw TypeError(
             "Markdown should be parsed to static HTML in Build mode.",
@@ -80,6 +80,27 @@ function isDevServer(
 }
 
 const postfixRE = /[?#].*$/
+
 function cleanUrl(url: string): string {
   return url.replace(postfixRE, "")
+}
+
+function send(
+  _req: IncomingMessage,
+  res: ServerResponse,
+  content: string,
+  headers: OutgoingHttpHeaders | undefined,
+): void {
+  res.setHeader("Content-Type", "http")
+  res.setHeader("Cache-Control", "no-cache")
+
+  if (headers) {
+    for (const name in headers) {
+      res.setHeader(name, headers[name]!)
+    }
+  }
+
+  res.statusCode = 200
+
+  res.end(content)
 }

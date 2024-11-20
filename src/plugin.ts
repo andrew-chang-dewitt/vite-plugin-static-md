@@ -3,7 +3,7 @@ import type { Plugin, UserConfig } from "vite"
 import { modifyConfig } from "./config.js"
 import { indexMdMiddleware } from "./devServer.js"
 import { renderStatic } from "./html.js"
-import { ctx, setCtx } from "./provider.js"
+import { Context } from "./context.js"
 
 export interface Options {
   cssFile?: string // exact path only
@@ -17,6 +17,8 @@ export interface ExcludePatterns {
 }
 
 export function plugin(opts?: Options): Plugin[] {
+  let ctx: Context
+
   return [
     {
       name: "static-md-plugin:serve",
@@ -25,7 +27,7 @@ export function plugin(opts?: Options): Plugin[] {
       // setup log level if user provides a value
       async config(userConfig): Promise<UserConfig> {
         const [builtContext, cfg] = await modifyConfig(userConfig, opts)
-        setCtx(builtContext)
+        ctx = builtContext
 
         return cfg
       },
@@ -33,7 +35,7 @@ export function plugin(opts?: Options): Plugin[] {
       // configure custom middleware to point urls matching `pages` to their
       // markdown sources & transform those sources into index.html files
       configureServer(server) {
-        server.middlewares.use(indexMdMiddleware(server, ctx()))
+        server.middlewares.use(indexMdMiddleware(server, ctx))
       },
     },
     {
@@ -47,27 +49,26 @@ export function plugin(opts?: Options): Plugin[] {
           opts,
           "build",
         )
-        setCtx(builtContext)
+        ctx = builtContext
 
         return cfg
       },
 
       resolveId(src: string) {
         // sources not in pages map are skipped
-        if (!ctx().filter(src)) return null
+        if (!ctx.filter(src)) return null
         // ensure sources given in pages map are resolved,
         // even if the file doesn't exist
         return src
       },
 
       async load(id: string) {
-        let _ctx = ctx()
         // ids not in pages map are skipped
-        if (!_ctx.filter(id)) return null
+        if (!ctx.filter(id)) return null
 
-        const page = _ctx.pages[id]
+        const page = ctx.pages[id]
         const res = {
-          code: await renderStatic(page, _ctx.htmlTemplate, _ctx.cssFile),
+          code: await renderStatic(page, ctx.htmlTemplate, ctx.cssFile),
         }
 
         return res
