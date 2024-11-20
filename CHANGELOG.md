@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.3.3](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.3.2...v0.3.3) (2024-11-20)
+
+
+### Bug Fixes
+
+* stop incorectly requiring serve field in excludes pattern validator ([a67c76b](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/a67c76b6fc103990bddb68bb6c7ac2bfc6c877d9))
+
 ## [0.3.2](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.3.1...v0.3.2) (2024-11-20)
 
 
