@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.3.1](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.3.0...v0.3.1) (2024-11-20)
+
+
+### Bug Fixes
+
+* correct missed change to function on module instead of method on object ([9b506f8](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/9b506f86d8f25ef2735e475ecfd286256f3e81b3))
+* dev server now handles add & removing files where previously it ignored the events ([4e7fc46](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/4e7fc46d95326ceb2f8430fe3f4e2c4ae3845471))
+
 ## [0.3.0](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.2.7...v0.3.0) (2024-11-20)
 
 
