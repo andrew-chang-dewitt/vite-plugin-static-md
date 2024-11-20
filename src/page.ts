@@ -1,22 +1,38 @@
 import { readFile } from "fs/promises"
+import matter from "gray-matter"
 import { parse } from "path"
-import { getHtmlId, getRollupInputKey, getURL } from "./path.js"
+
+import {
+  getHtmlId,
+  getInputRelativePath,
+  getRollupInputKey,
+  getURL,
+} from "./path.js"
+import { DefaultContext } from "./context.js"
 
 export interface Page {
   src: string
   id: string
   md: string
+  data: PageData
   url: string
   inputKey: string
+}
+
+export interface PageData {
+  title: string
+  description?: string
+  keywords?: string[]
+  meta?: Record<string, string>
 }
 
 export async function getPages(
   paths: string[],
   root: string,
-  mode: "dev" | "build",
+  ctx: DefaultContext,
 ): Promise<Record<string, Page>> {
   let pages: Record<string, Page> = {}
-  let key: "url" | "id" = mode === "dev" ? "url" : "id"
+  let key: "url" | "id" = ctx.mode === "dev" ? "url" : "id"
 
   for (const path of paths) {
     const page = await buildPage(path, root)
@@ -27,17 +43,26 @@ export async function getPages(
 }
 
 async function buildPage(path: string, root: string): Promise<Page> {
-  const md = await readFile(path, { encoding: "utf8" })
+  const fileContents = await readFile(path, { encoding: "utf8" })
+  const { content: md, data: uncheckedData } = matter(fileContents)
+  // FIXME: should we validate the data's type here?
+  const data = uncheckedData as PageData
   const parsed = parse(path)
   const url = getURL(parsed, root)
   const id = getHtmlId(parsed)
   const inputKey = getRollupInputKey(parsed, root)
 
+  // page title defaults to filename
+  if (!data.title) {
+    data.title = getInputRelativePath(parsed, root)
+  }
+
   return {
-    src: path,
+    data,
     id,
-    md,
-    url,
     inputKey,
+    md,
+    src: path,
+    url,
   }
 }

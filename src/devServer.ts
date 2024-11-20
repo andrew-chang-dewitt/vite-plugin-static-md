@@ -10,11 +10,12 @@
  * then processes it through server.transformIndexHtml(...) before sending it
  * on to the client this'll only work for dev though, build/preview needs to
  */
-import { Connect, PreviewServer, ViteDevServer, send } from "vite"
+import type { Connect, PreviewServer, ViteDevServer } from "vite"
 
 import { Context } from "./context.js"
-import { mdToDynHtml } from "./html.js"
+import { renderDyn } from "./html.js"
 import { logger } from "./logging.js"
+import { IncomingMessage, OutgoingHttpHeaders, ServerResponse } from "http"
 
 // emit files to the bundle probably
 export function indexMdMiddleware(
@@ -36,8 +37,8 @@ export function indexMdMiddleware(
     ) {
       logger().info(`handling ${url}`)
       // get the source id from the page url path
-      let { src } = pages[url]
-      logger().info(`matched ${src}`)
+      let page = pages[url]
+      logger().info(`matched ${page.src}`)
 
       // then the rest here gets changed to simply get the same headers
       const headers = isDev
@@ -49,7 +50,7 @@ export function indexMdMiddleware(
         // `<filename>.md?raw`, parses it w/ marked before inserting parsed
         // markdown into html template instead of loading from filesystem
         if (isDev) {
-          let html = await mdToDynHtml(src, root, htmlTemplate, cssFile)
+          let html = await renderDyn(page, root, htmlTemplate, cssFile)
           // have vite apply standard html transforms
           // (hopefully this includes adding the markdown source to the module graph?)
           logger().info(`${url} before vite's transform:`)
@@ -57,7 +58,7 @@ export function indexMdMiddleware(
           html = await server.transformIndexHtml(url, html, req.originalUrl)
           logger().info(`${url} served as:`)
           logger().dir(html)
-          return send(req, res, html, "html", { headers })
+          return send(req, res, html, headers)
         } else {
           throw TypeError(
             "Markdown should be parsed to static HTML in Build mode.",
@@ -79,6 +80,27 @@ function isDevServer(
 }
 
 const postfixRE = /[?#].*$/
+
 function cleanUrl(url: string): string {
   return url.replace(postfixRE, "")
+}
+
+function send(
+  _req: IncomingMessage,
+  res: ServerResponse,
+  content: string,
+  headers: OutgoingHttpHeaders | undefined,
+): void {
+  res.setHeader("Content-Type", "http")
+  res.setHeader("Cache-Control", "no-cache")
+
+  if (headers) {
+    for (const name in headers) {
+      res.setHeader(name, headers[name]!)
+    }
+  }
+
+  res.statusCode = 200
+
+  res.end(content)
 }

@@ -1,8 +1,5 @@
-import {
-  LogLevel,
-  Logger as ViteLogger,
-  createLogger as createViteLogger,
-} from "vite"
+import type { LogLevel, Logger as ViteLogger } from "vite"
+import { createLogger as createViteLogger } from "vite"
 import { dir } from "./utils.js"
 
 let _logger: ExtendedLogger
@@ -36,16 +33,3 @@ export function replace(level?: LogLevel): ExtendedLogger {
 
   return _logger
 }
-
-// class Logger {
-//   static #instance: Logger
-//   viteLogger: ViteLogger
-//
-//   private constructor(level?: LogLevel) {
-//     this.viteLogger = createViteLogger(level ?? "warn")
-//   }
-//
-//   public static get instance(): Logger {
-//
-//   }
-// }

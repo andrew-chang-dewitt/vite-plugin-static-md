@@ -1,6 +1,6 @@
 import { glob } from "fs/promises"
 import { parse, resolve } from "path"
-import { UserConfig } from "vite"
+import type { UserConfig } from "vite"
 
 import { Context, Mode, completeContext, initContext } from "./context.js"
 import {
@@ -24,7 +24,7 @@ export async function modifyConfig(
 
   // setup logger if not vite's default
   if (userConfig.logLevel) {
-    logger = replaceLogger(userConfig.logLevel)
+    logger = replaceLogger("info")
   }
 
   // get web root dir from config
@@ -34,7 +34,7 @@ export async function modifyConfig(
   logger.info("excludes list expanded to:")
   logger.dir(exclude_list)
   const paths = await getPaths(root, exclude_list)
-  const pages = await getPages(paths, root, ictx.mode)
+  const pages = await getPages(paths, root, ictx)
   logger.dir(pages)
 
   const cfg = {

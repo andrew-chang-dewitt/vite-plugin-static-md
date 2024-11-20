@@ -19,86 +19,11 @@
  * - [ ] [TODO] create a cli that loads a given file as the sole md source into
  *       the default template & launches a dev server or generates html & pdf
  *       outputs
- * - [ ] [TODO] frontmatter support to get page title, summary, publish date, & other information
+ * - [x] [TODO] frontmatter support to get page title, summary, publish date, & other information
  * - [ ] toc support
  * - [ ] toc as page in directory using data from frontmatter of descendant pages
  */
 
-import type { Plugin, UserConfig } from "vite"
-
-import { modifyConfig } from "./config.js"
-import { Context } from "./context.js"
-import { indexMdMiddleware } from "./devServer.js"
-import { mdToStaticHtml } from "./html.js"
-
-export interface Options {
-  cssFile?: string // exact path only
-  excludes?: string | string[] | ExcludePatterns // paths or globs
-  htmlTemplate?: string // exact path only
-}
-
-export interface ExcludePatterns {
-  serve?: string | string[] // paths or globs
-  build: string | string[] // paths or globs
-}
-
-export default function plugin(opts?: Options): Plugin[] {
-  let ctx: Context
-
-  return [
-    {
-      name: "static-md-plugin:serve",
-      apply: "serve",
-
-      // setup log level if user provides a value
-      async config(userConfig): Promise<UserConfig> {
-        const [builtContext, cfg] = await modifyConfig(userConfig, opts)
-        ctx = builtContext
-
-        return cfg
-      },
-
-      // configure custom middleware to point urls matching `pages` to their
-      // markdown sources & transform those sources into index.html files
-      configureServer(server) {
-        server.middlewares.use(indexMdMiddleware(server, ctx))
-      },
-    },
-    {
-      name: "static-md-plugin:build",
-      apply: "build",
-
-      // edit user config to add all markdown files as rollup entry points
-      async config(userConfig): Promise<UserConfig> {
-        const [builtContext, cfg] = await modifyConfig(
-          userConfig,
-          opts,
-          "build",
-        )
-        ctx = builtContext
-
-        return cfg
-      },
-
-      resolveId(src: string) {
-        // sources not in pages map are skipped
-        if (!ctx.filter(src)) return null
-        // ensure sources given in pages map are resolved,
-        // even if the file doesn't exist
-        return src
-      },
-
-      async load(id: string) {
-        // ids not in pages map are skipped
-        if (!ctx.filter(id)) return null
-
-        const { md } = ctx.pages[id]
-        const res = {
-          code: await mdToStaticHtml(md, ctx.htmlTemplate, ctx.cssFile),
-        }
-
-        return res
-      },
-    },
-  ]
-}
+import { plugin } from "./plugin.js"
+export default plugin
+export { Options, ExcludePatterns } from "./plugin.js"
