@@ -7,7 +7,7 @@ import {
   unlinkFileListener,
 } from "./devServer.js"
 import { renderStatic } from "./html.js"
-import { provider as ctx } from "./context.js"
+import { provider as ctx, included } from "./context.js"
 
 export interface Options {
   cssFile?: string // exact path only
@@ -57,7 +57,7 @@ export function plugin(opts?: Options): Plugin[] {
 
       resolveId(src: string) {
         // sources not in pages map are skipped
-        if (!ctx().included(src)) return null
+        if (!included(src)) return null
         // ensure sources given in pages map are resolved,
         // even if the file doesn't exist
         return src
@@ -66,7 +66,7 @@ export function plugin(opts?: Options): Plugin[] {
       async load(id: string) {
         let _ctx = ctx()
         // ids not in pages map are skipped
-        if (!_ctx.included(id)) return null
+        if (!included(id)) return null
 
         const page = _ctx.pages[id]
         const res = {
