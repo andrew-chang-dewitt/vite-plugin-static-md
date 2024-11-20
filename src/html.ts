@@ -1,10 +1,11 @@
 import { JSDOM } from "jsdom"
 import { marked } from "marked"
-import { parse } from "path"
+import { parse, resolve } from "path"
 
 import { getInputRelativePath } from "./path.js"
 import { Page, PageData } from "./page.js"
 import { logger } from "./logging.js"
+import { readdir } from "fs/promises"
 
 /**
  * render markdown source file to static html
@@ -107,8 +108,23 @@ export async function renderDyn(
   logger().dir(page)
   const document = createDocument(htmlTemplate, cssFile)
   const body = document.querySelector("body")!
+  const path = parse(src)
 
-  const mdSrcRelative = getInputRelativePath(parse(src), root)
+  // get sibling files w/ same name, but different extensions
+  let imports: string[] = []
+  const rgxStr = `${path.name}\.(?!md).*$`
+  const rgx = new RegExp(rgxStr)
+  for (const sibling of await readdir(path.dir)) {
+    if (rgx.test(sibling)) {
+      const importPath = parse(resolve(path.dir, sibling))
+      const relImportPath = getInputRelativePath(importPath, root)
+      imports.push(relImportPath)
+    }
+  }
+  logger().info("siblings to import in html:")
+  logger().dir(imports)
+
+  const mdSrcRelative = getInputRelativePath(path, root)
 
   const scriptTag = document.createElement("script")
   scriptTag.type = "module"
@@ -190,6 +206,13 @@ target.innerHTML = html
   `
 
   body.appendChild(scriptTag)
+
+  const importsTag = document.createElement("script")
+  importsTag.type = "module"
+  importsTag.text = imports.map((src) => `import "/${src}"`).join("\n")
+  // add after scriptTag so <head> is updated
+  // & PageData is available on document for importees to use
+  body.appendChild(importsTag)
 
   return normalizeHtml(document.documentElement.outerHTML)
 }
