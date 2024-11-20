@@ -11,12 +11,28 @@ import { readdir } from "fs/promises"
  * render markdown source file to static html
  */
 export async function renderStatic(
-  { md, data }: Page,
+  { src, md, data }: Page,
+  root: string,
   htmlTemplate: string,
   cssFile?: string,
 ): Promise<string> {
   // get md source as html
   const asHtml = await marked(md)
+  // get sibling files w/ same name, but different extensions
+  const path = parse(src)
+  let imports: string[] = []
+  const rgxStr = `^${path.name}\.(?!md).*$`
+  const rgx = new RegExp(rgxStr)
+  for (const sibling of await readdir(path.dir)) {
+    if (rgx.test(sibling)) {
+      const importPath = parse(resolve(path.dir, sibling))
+      const relImportPath = getInputRelativePath(importPath, root)
+      imports.push(relImportPath)
+    }
+  }
+  logger().info("siblings to import in html:")
+  logger().dir(imports)
+
   // create mock dom for html manipulation
   const document = createDocument(htmlTemplate, cssFile)
   // get target node for markdown content insertion
@@ -49,6 +65,13 @@ console.dir(document.pageData)`
   for (const tag of tags) {
     head.appendChild(tag)
   }
+
+  const importsTag = document.createElement("script")
+  importsTag.type = "module"
+  importsTag.text = imports.map((src) => `import "/${src}"`).join("\n")
+  // add after scriptTag so <head> is updated
+  // & PageData is available on document for importees to use
+  body.appendChild(importsTag)
 
   return normalizeHtml(document.documentElement.outerHTML)
 }
@@ -112,7 +135,7 @@ export async function renderDyn(
 
   // get sibling files w/ same name, but different extensions
   let imports: string[] = []
-  const rgxStr = `${path.name}\.(?!md).*$`
+  const rgxStr = `^${path.name}\.(?!md).*$`
   const rgx = new RegExp(rgxStr)
   for (const sibling of await readdir(path.dir)) {
     if (rgx.test(sibling)) {
