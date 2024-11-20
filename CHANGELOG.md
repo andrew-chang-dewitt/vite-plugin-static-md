@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.7](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.2.6...v0.2.7) (2024-11-20)
+
+
+### Bug Fixes
+
+* **frontmatter:** add page data to document in build ([02829d7](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/02829d701fd4440b1f4d7a899093ec180633d49e))
+
 ## [0.2.6](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.2.5...v0.2.6) (2024-11-20)
 
 
