@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.3.4](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.3.3...v0.3.4) (2024-11-29)
+
+
+### Features
+
+* support commonmarkdown directives ([a6c0265](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/a6c0265799cedae3106c34f389b646abbec283c8))
+
 ## [0.3.3](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.3.2...v0.3.3) (2024-11-20)
 
 
