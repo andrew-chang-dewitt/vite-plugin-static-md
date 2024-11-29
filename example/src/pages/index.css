@@ -1,0 +1,4 @@
+.red {
+  color: var(--colors-accent2);
+  font-weight: var(--fonts-weight-sans-semi-bold);
+}

@@ -1,5 +1,6 @@
 import { JSDOM } from "jsdom"
 import { marked } from "marked"
+import { createDirectives } from "marked-directive"
 import { parse, resolve } from "path"
 
 import { getInputRelativePath } from "./path.js"
@@ -17,7 +18,7 @@ export async function renderStatic(
   cssFile?: string,
 ): Promise<string> {
   // get md source as html
-  const asHtml = await marked(md)
+  const asHtml = await marked.use(createDirectives()).parse(md)
   // get sibling files w/ same name, but different extensions
   const path = parse(src)
   let imports: string[] = []
@@ -153,6 +154,7 @@ export async function renderDyn(
   scriptTag.type = "module"
   scriptTag.text = `
 import { marked } from "marked"
+import { createDirectives } from "marked-directive"
 import { parse } from "yaml"
 
 import doc from "/${mdSrcRelative}?raw"
@@ -226,7 +228,7 @@ for (const tag of headTags) {
 
 // add markdown to body
 const target = document.querySelector("#markdown-target")
-const html = marked.parse(content)
+const html = await marked.use(createDirectives()).parse(content)
 target.innerHTML = html
   `
 

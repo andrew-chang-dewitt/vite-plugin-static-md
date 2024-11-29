@@ -8,3 +8,7 @@ description: An index linking to a few other pages
 - [other/](./other/)
 - [page/](./page/)
 - [page/nested/](./page/nested/)
+
+:::{.red}
+some text that is red
+:::
