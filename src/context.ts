@@ -27,13 +27,13 @@ export function updateContext(updated: Partial<Context>): Context {
   return _ctx
 }
 
-export interface DefaultContext extends Options {
+export interface InitialContext extends Options {
   htmlTemplate: string
   mode: Mode
   root?: string
 }
 
-export interface Context extends DefaultContext {
+export interface Context extends InitialContext {
   root: string
   paths: string[]
   pages: Record<string, Page>
@@ -49,7 +49,7 @@ export function isDev(mode: Mode): mode is "dev" {
 export async function initContext(
   opts?: Options,
   mode?: Mode,
-): Promise<DefaultContext> {
+): Promise<InitialContext> {
   return {
     cssFile: opts?.cssFile,
     htmlTemplate: await loadHtmlTemplate(opts?.htmlTemplate),
@@ -58,7 +58,7 @@ export async function initContext(
 }
 
 export function completeContext(
-  ctx: DefaultContext,
+  ctx: InitialContext,
   root: string,
   pages: Record<string, Page>,
   paths: string[],
