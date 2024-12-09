@@ -15,8 +15,8 @@
  * - [x] inline imports to sibling assets--e.g. for some <file>.md, if there's a
  *       <file>.css or <file>.(ts|js) next to it, then imports of both will be
  *       added to the output html
- * - [ ] create a template for initing new projects set up for this easily
- * - [ ] [TODO] create a cli that loads a given file as the sole md source into
+ * - [x] create a template for initing new projects set up for this easily
+ * - [x] create a cli that loads a given file as the sole md source into
  *       the default template & launches a dev server or generates html & pdf
  *       outputs
  * - [x] [TODO] frontmatter support to get page title, summary, publish date, & other information
