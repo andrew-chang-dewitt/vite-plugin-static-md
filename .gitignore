@@ -7,12 +7,15 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# build artifacts & dependencies
 node_modules
 example/node_modules
 dist
 example/dist
 dist-ssr
 *.local
+vite-plugin-static-md-*.tgz
+BODY.md
 
 # Editor directories and files
 .vscode/*
@@ -24,5 +27,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-vite-plugin-static-md-*.tgz
-BODY.md
+
+# test artifacts
+coverage
