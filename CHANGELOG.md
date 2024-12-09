@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.4.0](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.3.4...v0.4.0) (2024-12-09)
+
+
+### ⚠ BREAKING CHANGES
+
+* switch vite to peer dep & update dev deps
+
+* switch vite to peer dep & update dev deps ([d10c513](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/d10c513594771ede1a2f02a6469b62ef7619b099)), closes [#15](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/issues/15)
+
 ## [0.3.4](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.3.3...v0.3.4) (2024-11-29)
 
 
