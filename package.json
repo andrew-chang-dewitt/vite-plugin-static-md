@@ -16,8 +16,10 @@
   ],
   "scripts": {
     "dev": "cd example && npm run dev",
-    "test": "echo 'TESTS NOT IMPLEMENTED YET'",
-    "prebuild": "rm -rf dist && npm run test",
+    "test": "vitest",
+    "coverage": "vitest run --coverage",
+    "test:once": "vitest run",
+    "prebuild": "rm -rf dist && npm run test:once",
     "build": "tsc",
     "prerelease": "npm run build",
     "release": "commit-and-tag-version",
@@ -47,10 +49,12 @@
     "@commitlint/config-conventional": "^19.6.0",
     "@types/jsdom": "^21.1.7",
     "@types/node": "^22.10.1",
+    "@vitest/coverage-v8": "^2.1.8",
     "commit-and-tag-version": "^12.5.0",
     "husky": "^9.1.7",
     "prettier": "^3.4.2",
     "standard-version": "^9.5.0",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
   }
 }
