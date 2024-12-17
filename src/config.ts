@@ -24,7 +24,7 @@ export async function modifyConfig(
 
   // setup logger if not vite's default
   if (userConfig.logLevel) {
-    logger = replaceLogger("info")
+    logger = replaceLogger(userConfig.logLevel)
   }
 
   // get web root dir from config
