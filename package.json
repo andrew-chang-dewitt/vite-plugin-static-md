@@ -12,7 +12,8 @@
   "types": "dist/main.d.ts",
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "dev": "cd example && npm run dev",
