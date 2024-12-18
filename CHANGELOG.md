@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.4.2](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.4.1...v0.4.2) (2024-12-18)
+
+
+### Bug Fixes
+
+* **deps-security:** bump nanoid from 3.3.7 to 3.3.8 ([b066d5c](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/b066d5c9c9503a6731f3aaa3c67439b6a42a5f11))
+* **deps:** bump the prod-dependencies-minor group with 2 updates ([9d77e69](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/9d77e69372469b7319e23e2885c6820f30dd7a17))
+
 ## [0.4.1](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.4.0...v0.4.1) (2024-12-09)
 
 

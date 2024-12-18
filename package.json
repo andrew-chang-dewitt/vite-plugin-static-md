@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-static-md",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "author": "Andrew Chang-DeWitt",
   "license": "MIT",
   "homepage": "https://github.com/andrew-chang-dewitt/vite-plugin-static-md#readme",
@@ -24,7 +24,7 @@
     "build": "tsc",
     "prerelease": "npm run build",
     "release": "commit-and-tag-version",
-    "prepare": "husky init",
+    "prepare": "husky",
     "prepublishOnly": "npm run build"
   },
   "prettier": {
