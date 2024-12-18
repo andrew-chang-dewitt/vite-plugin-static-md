@@ -16,14 +16,15 @@
   ],
   "scripts": {
     "dev": "cd example && npm run dev",
+    "check": "tsc --noEmit",
     "test": "vitest",
-    "coverage": "vitest run --coverage",
     "test:once": "vitest run",
+    "coverage": "vitest run --coverage",
     "prebuild": "rm -rf dist && npm run test:once",
     "build": "tsc",
     "prerelease": "npm run build",
     "release": "commit-and-tag-version",
-    "prepare": "husky install",
+    "prepare": "husky init",
     "prepublishOnly": "npm run build"
   },
   "prettier": {
