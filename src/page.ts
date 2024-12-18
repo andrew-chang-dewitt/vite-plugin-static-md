@@ -8,7 +8,7 @@ import {
   getRollupInputKey,
   getURL,
 } from "./path.js"
-import { DefaultContext } from "./context.js"
+import { InitialContext } from "./context.js"
 
 export interface Page {
   src: string
@@ -29,7 +29,7 @@ export interface PageData {
 export async function getPages(
   paths: string[],
   root: string,
-  ctx: DefaultContext,
+  ctx: InitialContext,
 ): Promise<Record<string, Page>> {
   let pages: Record<string, Page> = {}
   let key: "url" | "id" = ctx.mode === "dev" ? "url" : "id"

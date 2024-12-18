@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import type { LogLevel } from "vite"
 
 import { modifyConfig } from "./config.js"
-import { included, provider } from "./context.js"
+import { provider } from "./context.js"
 import { logger } from "./logging.js"
 
 describe("modifyConfig()", () => {
