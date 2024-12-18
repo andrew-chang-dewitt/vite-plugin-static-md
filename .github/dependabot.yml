@@ -9,6 +9,24 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
+    commit-message:
+      # marking prod dep updates as fixes will trigger patch version bumps
+      # TODO: wish there was a better, more natural prefix though that would be
+      # included in changelogs w/out a lot of config changes on conventional
+      # commits and generated changelogs, see: 
+      # https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-changelog-conventionalcommits
+      # and https://github.com/conventional-changelog/conventional-changelog-config-spec/blob/master/versions/2.2.0/README.md
+      prefix: "fix"
+      # but by keeping dev deps as build, they won't trigger any version bumps
+      prefix-development: "build"
+      include: "scope"
+      # TODO: undetermined yet where security patches will fall in this; maybe
+      # they'll just blindly follow the `dev`->`build` & `prod`->`fix`
+      # convention? if so, is this the desired result? shouldn't they be
+      # flagged differently anyways so they show up differently in the
+      # changelog? ideally, security updates would get a
+      # `security({dep scope})` commit type that would go under a `security`
+      # header in the changelog
     groups:
       dev-dependencies:
         dependency-type: "development"
