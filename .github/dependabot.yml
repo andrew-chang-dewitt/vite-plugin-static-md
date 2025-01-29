@@ -9,11 +9,12 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
+    target-branch: "staging"
     commit-message:
       # marking prod dep updates as fixes will trigger patch version bumps
       # TODO: wish there was a better, more natural prefix though that would be
       # included in changelogs w/out a lot of config changes on conventional
-      # commits and generated changelogs, see: 
+      # commits and generated changelogs, see:
       # https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-changelog-conventionalcommits
       # and https://github.com/conventional-changelog/conventional-changelog-config-spec/blob/master/versions/2.2.0/README.md
       prefix: "fix"
