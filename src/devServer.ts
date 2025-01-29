@@ -27,6 +27,8 @@ import { buildPage } from "./page.js"
 import { getURL } from "./path.js"
 import { parse } from "path"
 
+const CONTEXT_BASE = "/__"
+
 export async function addFileListener(path: string, _?: Stats) {
   logger().info(`file added: ${path}`)
 
@@ -79,15 +81,17 @@ export function indexMdMiddleware(
 
     const { root, pages, htmlTemplate, cssFile }: Context = provider()
     const url = req.url && cleanUrl(req.url)
+
+    // handle markdown pages
     if (
       url &&
       Object.keys(pages).includes(url) &&
       req.headers["sec-fetch-dest"] !== "script"
     ) {
-      logger().info(`handling ${url}`)
+      logger().info(`[indexMdMiddleware] handling ${url}`)
       // get the source id from the page url path
       let page = pages[url]
-      logger().info(`matched ${page.src}`)
+      logger().info(`[indexMdMiddleware] matched ${page.src}`)
 
       // then the rest here gets changed to simply get the same headers
       const headers = isDev
@@ -118,6 +122,52 @@ export function indexMdMiddleware(
         return next(e)
       }
     }
+
+    next()
+  }
+}
+
+// emit requested context data as json objects
+export function contextMiddleware(
+  server: ViteDevServer | PreviewServer,
+): Connect.NextHandleFunction {
+  const isDev = isDevServer(server)
+
+  return async function (req, res, next) {
+    if (res.writableEnded) {
+      return next()
+    }
+
+    const headers = isDev
+      ? server.config.server.headers
+      : server.config.preview.headers
+
+    const ctx: Context = provider()
+    const url = req.url && cleanUrl(req.url)
+
+    // handle context path
+    if (url && url.startsWith(CONTEXT_BASE)) {
+      logger().info(`[contextMiddleware] handling ${url}`)
+
+      try {
+        const dotPath = cleanDotPath(url)
+        // TODO: should really validate the path is accessing a valid field on
+        // the Context object to avoid type errors
+        // const path = validateDotPath(dotPath)
+
+        type CtxKey = keyof typeof ctx
+
+        const data = dotPath.length > 0 ? ctx[dotPath as CtxKey] : ctx
+
+        return send(req, res, JSON.stringify(data), {
+          ...headers,
+          "content-type": "application/json",
+        })
+      } catch (e) {
+        return next(e)
+      }
+    }
+
     next()
   }
 }
@@ -132,6 +182,17 @@ const postfixRE = /[?#].*$/
 
 function cleanUrl(url: string): string {
   return url.replace(postfixRE, "")
+}
+
+function cleanDotPath(path: string): string {
+  const wOutBase = path.startsWith(CONTEXT_BASE)
+    ? path.slice(CONTEXT_BASE.length)
+    : path
+  const dots = wOutBase.replace(/\//g, ".")
+  const start = dots.startsWith(".") ? 1 : 0
+  const end = dots.length - start - (path.endsWith(".") ? 1 : 0)
+
+  return dots.slice(start, end)
 }
 
 function send(

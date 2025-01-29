@@ -128,7 +128,7 @@ export async function renderDyn(
   cssFile?: string,
 ): Promise<string> {
   const { src } = page
-  logger().info(`building dynamic html for ${src}`)
+  logger().info(`[renderDyn] building dynamic html for ${src}`)
   logger().dir(page)
   const document = createDocument(htmlTemplate, cssFile)
   const body = document.querySelector("body")!
@@ -145,7 +145,7 @@ export async function renderDyn(
       imports.push(relImportPath)
     }
   }
-  logger().info("siblings to import in html:")
+  logger().info("[renderDyn] siblings to import in html:")
   logger().dir(imports)
 
   const mdSrcRelative = getInputRelativePath(path, root)
@@ -232,11 +232,11 @@ const html = await marked.use(createDirectives()).parse(content)
 target.innerHTML = html
   `
 
-  body.appendChild(scriptTag)
-
   const importsTag = document.createElement("script")
   importsTag.type = "module"
   importsTag.text = imports.map((src) => `import "/${src}"`).join("\n")
+
+  body.appendChild(scriptTag)
   // add after scriptTag so <head> is updated
   // & PageData is available on document for importees to use
   body.appendChild(importsTag)
