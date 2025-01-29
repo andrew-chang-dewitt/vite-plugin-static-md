@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.4.3](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.4.2...v0.4.3) (2025-01-29)
+
+
+### Bug Fixes
+
+* **deps:** bump the prod-dependencies-minor group across 1 directory with 2 updates ([d11eb83](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/d11eb8315f3b8ead0d59fda55288784cf4e9aa28))
+* **deps:** bump vite from 5.4.11 to 5.4.14 ([81eaae0](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/81eaae098bf53015ca55d6888bb1e27d652126b0))
+
 ## [0.4.2](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.4.1...v0.4.2) (2024-12-18)
 
 
