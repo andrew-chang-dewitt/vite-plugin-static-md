@@ -77,17 +77,19 @@ export function indexMdMiddleware(
       return next()
     }
 
-    const { root, pages, htmlTemplate, cssFile }: Context = provider()
+    const { pages }: Context = provider()
     const url = req.url && cleanUrl(req.url)
+
+    // handle markdown pages
     if (
       url &&
       Object.keys(pages).includes(url) &&
       req.headers["sec-fetch-dest"] !== "script"
     ) {
-      logger().info(`handling ${url}`)
+      logger().info(`[indexMdMiddleware] handling ${url}`)
       // get the source id from the page url path
       let page = pages[url]
-      logger().info(`matched ${page.src}`)
+      logger().info(`[indexMdMiddleware] matched ${page.src}`)
 
       // then the rest here gets changed to simply get the same headers
       const headers = isDev
@@ -99,7 +101,7 @@ export function indexMdMiddleware(
         // `<filename>.md?raw`, parses it w/ marked before inserting parsed
         // markdown into html template instead of loading from filesystem
         if (isDev) {
-          let html = await renderDyn(page, root, htmlTemplate, cssFile)
+          let html = await renderDyn(page)
           // have vite apply standard html transforms
           // (hopefully this includes adding the markdown source to the module graph?)
           // logger().info(`${url} before vite's transform:`)
@@ -118,6 +120,7 @@ export function indexMdMiddleware(
         return next(e)
       }
     }
+
     next()
   }
 }

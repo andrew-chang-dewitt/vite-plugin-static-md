@@ -26,4 +26,6 @@
 
 import { plugin } from "./plugin.js"
 export default plugin
-export { Options, ExcludePatterns } from "./plugin.js"
+export type { Options, ExcludePatterns } from "./plugin.js"
+export type { Page, PageData } from "./page.js"
+export type { Context } from "./context.js"
