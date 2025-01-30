@@ -20,6 +20,7 @@
     "@types/jsdom": "^21.1.7",
     "@types/node": "^22.10.1",
     "prettier": "^3.4.2",
+    "vite-plugin-static-md": "file:../",
     "typescript": "^5.7.2"
   }
 }
