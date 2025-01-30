@@ -1,7 +1,7 @@
 import { readFile } from "fs/promises"
 
 import { Options } from "./main.js"
-import { Page } from "./page.js"
+import { Page, PageOut, pageOut } from "./page.js"
 import { logger } from "./logging.js"
 
 let _ctx: Context
@@ -14,6 +14,19 @@ export function provider(): Context {
     )
 
   return _ctx
+}
+
+// scrub non-output data from context output
+export function providerOut(): ContextOut {
+  let ctxOut: ContextOut = { pages: {} }
+
+  for (const [key, value] of Object.entries(_ctx.pages)) {
+    ctxOut.pages[key] = pageOut(value)
+  }
+
+  logger().info("context out returned as:")
+  logger().dir(ctxOut)
+  return ctxOut
 }
 
 export function updateContext(updated: Partial<Context>): Context {
@@ -38,6 +51,10 @@ export interface Context extends InitialContext {
   paths: string[]
   pages: Record<string, Page>
   excluded: string[]
+}
+
+export interface ContextOut {
+  pages: Record<string, PageOut>
 }
 
 export type Mode = "dev" | "build"
