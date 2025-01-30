@@ -1,14 +1,8 @@
 /// A POC of how to use the context object in dev to dynamically build lists of pages
-import type { Context, Page } from "vite-plugin-static-md"
-
-declare global {
-  interface Document {
-    ctx: Context
-  }
-}
+import type { Document, Page } from "vite-plugin-static-md"
 
 // get pages as a list of (url, data)
-const pages = (document["ctx"] as Context).pages
+const pages = (document as Document).ctx.pages
 console.dir(pages)
 
 // get target ul el
