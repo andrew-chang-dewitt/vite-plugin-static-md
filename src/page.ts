@@ -26,6 +26,12 @@ export interface PageData {
   meta?: Record<string, string>
 }
 
+export type PageOut = Pick<Page, "data" | "url">
+
+export function pageOut({ data, url }: Page): PageOut {
+  return { data, url }
+}
+
 export async function getPages(
   paths: string[],
   root: string,

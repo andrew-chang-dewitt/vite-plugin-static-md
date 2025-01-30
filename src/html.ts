@@ -4,7 +4,7 @@ import { createDirectives } from "marked-directive"
 import { parse, resolve } from "path"
 import { readdir } from "fs/promises"
 
-import { provider as ctx } from "./context.js"
+import { provider as ctx, providerOut as ctxOut } from "./context.js"
 import { getInputRelativePath } from "./path.js"
 import { Page, PageData } from "./page.js"
 import { logger } from "./logging.js"
@@ -14,6 +14,7 @@ import { logger } from "./logging.js"
  */
 export async function renderStatic({ src, md, data }: Page): Promise<string> {
   const _ctx = ctx()
+  const _ctxOut = ctxOut()
   const { root, htmlTemplate, cssFile } = _ctx
   // get md source as html
   const asHtml = await marked.use(createDirectives()).parse(md)
@@ -43,13 +44,15 @@ export async function renderStatic({ src, md, data }: Page): Promise<string> {
   }
   // get body node for css script insertion
   const body = document.querySelector("body")!
-  // create script tag for importing css via vite/rollup
+  // scrub non-output data from context output
+  // create script tag for importing css via vite/rollup & injecting context
+  // output data into document
   const scriptTag = document.createElement("script")
   scriptTag.type = "module"
   scriptTag.text = `
 import "$/styles/index.css"
 // load context data
-document.ctx = ${JSON.stringify(_ctx)}
+document.ctx = ${JSON.stringify(_ctxOut)}
 ${
   !!data
     ? `
@@ -124,6 +127,7 @@ export function buildHeadTags(doc: Document, data: PageData): HTMLElement[] {
  */
 export async function renderDyn(page: Page): Promise<string> {
   const { root, htmlTemplate, cssFile } = ctx()
+  const _ctxOut = ctxOut()
   const { src } = page
   logger().info(`[renderDyn] building dynamic html for ${src}`)
   logger().dir(page)
@@ -154,9 +158,7 @@ import { marked } from "marked"
 import { createDirectives } from "marked-directive"
 import { parse } from "yaml"
 
-document["ctx"] = ${JSON.stringify(ctx())}
-console.log("context added to document")
-console.dir(document["ctx"])
+document.ctx = ${JSON.stringify(_ctxOut)}
 
 // load data for this page directly from source though to trigger HMR on source
 // changes, this duplicates a lot of stuff, but it's just in dev so 🤷
@@ -181,10 +183,7 @@ if (!data.title) {
 }
 // FIXME: this doesn't work in build
 document.pageData = data
-console.log("frontmatter parsed & added to Document:")
-console.dir(document.pageData)
 const content = lines.slice(idx).join("\\n")
-console.log("content:", content)
 
 let head = document.querySelector("head")
 if (!!!head) {
