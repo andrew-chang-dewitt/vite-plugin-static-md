@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.4.5](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.4.4...v0.4.5) (2025-01-30)
+
+
+### Bug Fixes
+
+* **ctx:** export patched Document type to include Context on interface ([cd83567](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/cd83567379cbd88adc6b7d66858c352c7ece5d40))
+
 ## [0.4.4](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.4.3...v0.4.4) (2025-01-30)
 
 
