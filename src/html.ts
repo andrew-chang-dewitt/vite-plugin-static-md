@@ -2,21 +2,19 @@ import { JSDOM } from "jsdom"
 import { marked } from "marked"
 import { createDirectives } from "marked-directive"
 import { parse, resolve } from "path"
+import { readdir } from "fs/promises"
 
+import { provider as ctx } from "./context.js"
 import { getInputRelativePath } from "./path.js"
 import { Page, PageData } from "./page.js"
 import { logger } from "./logging.js"
-import { readdir } from "fs/promises"
 
 /**
  * render markdown source file to static html
  */
-export async function renderStatic(
-  { src, md, data }: Page,
-  root: string,
-  htmlTemplate: string,
-  cssFile?: string,
-): Promise<string> {
+export async function renderStatic({ src, md, data }: Page): Promise<string> {
+  const _ctx = ctx()
+  const { root, htmlTemplate, cssFile } = _ctx
   // get md source as html
   const asHtml = await marked.use(createDirectives()).parse(md)
   // get sibling files w/ same name, but different extensions
@@ -48,14 +46,17 @@ export async function renderStatic(
   // create script tag for importing css via vite/rollup
   const scriptTag = document.createElement("script")
   scriptTag.type = "module"
-  scriptTag.text =
-    `import "$/styles/index.css"` + !!data
-      ? `
+  scriptTag.text = `
+import "$/styles/index.css"
+// load context data
+document.ctx = ${JSON.stringify(_ctx)}
+${
+  !!data
+    ? `
 // load frontmatter data
-document.pageData = ${JSON.stringify(data)}
-console.log("frontmatter parsed and added to Document:")
-console.dir(document.pageData)`
-      : ""
+document.pageData = ${JSON.stringify(data)}`
+    : ""
+}`
 
   targetNode.innerHTML = asHtml
   body.appendChild(scriptTag)
@@ -121,12 +122,8 @@ export function buildHeadTags(doc: Document, data: PageData): HTMLElement[] {
 /**
  * render markdown source file to dynamic html w/ inline script suitable for HMR
  */
-export async function renderDyn(
-  page: Page,
-  root: string,
-  htmlTemplate: string,
-  cssFile?: string,
-): Promise<string> {
+export async function renderDyn(page: Page): Promise<string> {
+  const { root, htmlTemplate, cssFile } = ctx()
   const { src } = page
   logger().info(`[renderDyn] building dynamic html for ${src}`)
   logger().dir(page)
@@ -157,6 +154,12 @@ import { marked } from "marked"
 import { createDirectives } from "marked-directive"
 import { parse } from "yaml"
 
+document["ctx"] = ${JSON.stringify(ctx())}
+console.log("context added to document")
+console.dir(document["ctx"])
+
+// load data for this page directly from source though to trigger HMR on source
+// changes, this duplicates a lot of stuff, but it's just in dev so 🤷
 import doc from "/${mdSrcRelative}?raw"
 
 const lines = doc.split(/\\r?\\n/)

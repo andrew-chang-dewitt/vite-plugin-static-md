@@ -27,8 +27,6 @@ import { buildPage } from "./page.js"
 import { getURL } from "./path.js"
 import { parse } from "path"
 
-const CONTEXT_BASE = "/__"
-
 export async function addFileListener(path: string, _?: Stats) {
   logger().info(`file added: ${path}`)
 
@@ -79,7 +77,7 @@ export function indexMdMiddleware(
       return next()
     }
 
-    const { root, pages, htmlTemplate, cssFile }: Context = provider()
+    const { pages }: Context = provider()
     const url = req.url && cleanUrl(req.url)
 
     // handle markdown pages
@@ -103,7 +101,7 @@ export function indexMdMiddleware(
         // `<filename>.md?raw`, parses it w/ marked before inserting parsed
         // markdown into html template instead of loading from filesystem
         if (isDev) {
-          let html = await renderDyn(page, root, htmlTemplate, cssFile)
+          let html = await renderDyn(page)
           // have vite apply standard html transforms
           // (hopefully this includes adding the markdown source to the module graph?)
           // logger().info(`${url} before vite's transform:`)
@@ -127,51 +125,6 @@ export function indexMdMiddleware(
   }
 }
 
-// emit requested context data as json objects
-export function contextMiddleware(
-  server: ViteDevServer | PreviewServer,
-): Connect.NextHandleFunction {
-  const isDev = isDevServer(server)
-
-  return async function (req, res, next) {
-    if (res.writableEnded) {
-      return next()
-    }
-
-    const headers = isDev
-      ? server.config.server.headers
-      : server.config.preview.headers
-
-    const ctx: Context = provider()
-    const url = req.url && cleanUrl(req.url)
-
-    // handle context path
-    if (url && url.startsWith(CONTEXT_BASE)) {
-      logger().info(`[contextMiddleware] handling ${url}`)
-
-      try {
-        const dotPath = cleanDotPath(url)
-        // TODO: should really validate the path is accessing a valid field on
-        // the Context object to avoid type errors
-        // const path = validateDotPath(dotPath)
-
-        type CtxKey = keyof typeof ctx
-
-        const data = dotPath.length > 0 ? ctx[dotPath as CtxKey] : ctx
-
-        return send(req, res, JSON.stringify(data), {
-          ...headers,
-          "content-type": "application/json",
-        })
-      } catch (e) {
-        return next(e)
-      }
-    }
-
-    next()
-  }
-}
-
 function isDevServer(
   server: ViteDevServer | PreviewServer,
 ): server is ViteDevServer {
@@ -182,17 +135,6 @@ const postfixRE = /[?#].*$/
 
 function cleanUrl(url: string): string {
   return url.replace(postfixRE, "")
-}
-
-function cleanDotPath(path: string): string {
-  const wOutBase = path.startsWith(CONTEXT_BASE)
-    ? path.slice(CONTEXT_BASE.length)
-    : path
-  const dots = wOutBase.replace(/\//g, ".")
-  const start = dots.startsWith(".") ? 1 : 0
-  const end = dots.length - start - (path.endsWith(".") ? 1 : 0)
-
-  return dots.slice(start, end)
 }
 
 function send(

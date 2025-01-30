@@ -3,7 +3,6 @@ import type { Plugin, UserConfig } from "vite"
 import { modifyConfig } from "./config.js"
 import {
   addFileListener,
-  contextMiddleware,
   indexMdMiddleware,
   unlinkFileListener,
 } from "./devServer.js"
@@ -43,8 +42,6 @@ export function plugin(opts?: Options): Plugin[] {
         // custom middleware to point urls matching `pages` to their
         // markdown sources & transform those sources into index.html files
         server.middlewares.use(indexMdMiddleware(server))
-        // custom middleware to provide shared context data on dev server
-        server.middlewares.use(contextMiddleware(server))
       },
     },
     {
@@ -73,12 +70,7 @@ export function plugin(opts?: Options): Plugin[] {
 
         const page = _ctx.pages[id]
         const res = {
-          code: await renderStatic(
-            page,
-            _ctx.root,
-            _ctx.htmlTemplate,
-            _ctx.cssFile,
-          ),
+          code: await renderStatic(page),
         }
 
         return res
