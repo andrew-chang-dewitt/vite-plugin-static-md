@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.4.4](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.4.3...v0.4.4) (2025-01-30)
+
+
+### Features
+
+* **ctx:** make context data object available on document ([fcfaa48](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/fcfaa489c45f5bd271d076bc8ca1b5d06f466978))
+
 ## [0.4.3](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.4.2...v0.4.3) (2025-01-29)
 
 
