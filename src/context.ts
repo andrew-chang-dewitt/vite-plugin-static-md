@@ -24,7 +24,7 @@ export function providerOut(): ContextOut {
     ctxOut.pages[key] = pageOut(value)
   }
 
-  logger().info("context out returned as:")
+  logger().dbg("[providerOut] context out returned as:")
   logger().dir(ctxOut)
   return ctxOut
 }
@@ -34,7 +34,7 @@ export function updateContext(updated: Partial<Context>): Context {
     ..._ctx,
     ...updated,
   }
-  logger().info("context updated")
+  logger().dbg("[updateContext] context updated")
   logger().dir(_ctx)
 
   return _ctx

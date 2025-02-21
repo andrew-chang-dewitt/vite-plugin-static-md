@@ -70,7 +70,7 @@ export function getOutputRelativePath(
   root: string,
 ): string {
   let res = ""
-  logger().info(`making ${dir}/${name} relative...`)
+  logger().dbg(`[getOutputRelativePath] making ${dir}/${name} relative...`)
 
   // starts w/ root means it's not relative --
   // FIXME: this probably should be a lot more robust, but good enough for now
@@ -93,7 +93,7 @@ export function getOutputRelativePath(
     res += `${name}`
   }
 
-  logger().info(`done: ${res}`)
+  logger().dbg(`[getOutputRelativePath] done: ${res}`)
 
   return res
 }
@@ -116,7 +116,7 @@ export function getInputRelativePath(
   root: string,
 ): string {
   let res = ""
-  logger().info(`making ${dir}/${base} relative...`)
+  logger().dbg(`[getRollupInputKey] making ${dir}/${base} relative...`)
 
   // starts w/ root means it's not relative --
   // FIXME: this probably should be a lot more robust, but good enough for now
@@ -133,7 +133,7 @@ export function getInputRelativePath(
   }
   res += `${base}`
 
-  logger().info(`done: ${res}`)
+  logger().dbg(`[getRollupInputKey] done: ${res}`)
 
   return res
 }
