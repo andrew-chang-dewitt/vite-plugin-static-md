@@ -30,7 +30,7 @@ export async function renderStatic({ src, md, data }: Page): Promise<string> {
       imports.push(relImportPath)
     }
   }
-  logger().info("siblings to import in html:")
+  logger().dbg("siblings to import in html:")
   logger().dir(imports)
 
   // create mock dom for html manipulation
@@ -129,7 +129,7 @@ export async function renderDyn(page: Page): Promise<string> {
   const { root, htmlTemplate, cssFile } = ctx()
   const _ctxOut = ctxOut()
   const { src } = page
-  logger().info(`[renderDyn] building dynamic html for ${src}`)
+  logger().dbg(`[renderDyn] building dynamic html for ${src}`)
   logger().dir(page)
   const document = createDocument(htmlTemplate, cssFile)
   const body = document.querySelector("body")!
@@ -146,7 +146,7 @@ export async function renderDyn(page: Page): Promise<string> {
       imports.push(relImportPath)
     }
   }
-  logger().info("[renderDyn] siblings to import in html:")
+  logger().dbg("[renderDyn] siblings to import in html:")
   logger().dir(imports)
 
   const mdSrcRelative = getInputRelativePath(path, root)

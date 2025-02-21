@@ -28,13 +28,13 @@ import { getURL } from "./path.js"
 import { parse } from "path"
 
 export async function addFileListener(path: string, _?: Stats) {
-  logger().info(`file added: ${path}`)
+  logger().dbg(`file added: ${path}`)
 
   const { root, mode, pages, paths } = provider()
   const rgx = new RegExp(`^${root}.*\.md$`)
 
   if (rgx.test(path) && !excluded(path)) {
-    logger().info("file should be included, adding...")
+    logger().dbg("file should be included, adding...")
     // build a page object for the path
     const page = await buildPage(path, root)
     // then insert page object into Context.pages
@@ -50,12 +50,12 @@ export async function addFileListener(path: string, _?: Stats) {
 }
 
 export async function unlinkFileListener(path: string, _?: Stats) {
-  logger().info(`file unlinked: ${path}`)
+  logger().dbg(`[unlinkFileListener] file unlinked: ${path}`)
 
   const { pages, paths, root } = provider()
 
   if (included(path)) {
-    logger().info("file was included, removing...")
+    logger().dbg("[unlinkFileListener] file was included, removing...")
     const pageId = getURL(parse(path), root)
     const { [pageId]: unlinked, ...updatedPages } = pages
     const updatedPaths = paths.filter((p) => p !== path)
@@ -104,11 +104,7 @@ export function indexMdMiddleware(
           let html = await renderDyn(page)
           // have vite apply standard html transforms
           // (hopefully this includes adding the markdown source to the module graph?)
-          // logger().info(`${url} before vite's transform:`)
-          // logger().dir(html)
           html = await server.transformIndexHtml(url, html, req.originalUrl)
-          // logger().info(`${url} served as:`)
-          // logger().dir(html)
           return send(req, res, html, headers)
         } else {
           throw TypeError(

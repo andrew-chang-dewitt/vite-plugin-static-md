@@ -31,7 +31,7 @@ export async function modifyConfig(
   const root = resolveRoot(userConfig.root)
   // walk filetree at root & get absolute paths to every markdown file
   const excludeList = await expandExcludes(opts?.excludes, ictx.mode)
-  logger.info("excludes list expanded to:")
+  logger.dbg("[modifyConfig] excludes list expanded to:")
   logger.dir(excludeList)
   const paths = await getPaths(root, excludeList)
   const pages = await getPages(paths, root, ictx)
@@ -46,7 +46,7 @@ export async function modifyConfig(
     },
   }
 
-  logger.info("config modified to include")
+  logger.dbg("[modifyConfig] config modified to include")
   logger.dir(cfg.build.rollupOptions)
 
   const ctx = completeContext(ictx, root, pages, paths, excludeList)
