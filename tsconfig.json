@@ -6,6 +6,8 @@
     /* Language and Environment */
     "target": "es2020",
     "lib": ["ES2020"],
+    // enable import.meta.vitest flag for in source tests
+    "types": ["vitest/importMeta"],
     "useDefineForClassFields": true,
     // "moduleDetection": "auto", // vite's template-vanilla-ts uses "force"
 
