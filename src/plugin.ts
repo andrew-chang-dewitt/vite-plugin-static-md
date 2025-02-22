@@ -8,17 +8,7 @@ import {
 } from "./devServer.js"
 import { renderStatic } from "./html.js"
 import { provider as ctx, included } from "./context.js"
-
-export interface Options {
-  cssFile?: string // exact path only
-  excludes?: string | string[] | ExcludePatterns // paths or globs
-  htmlTemplate?: string // exact path only
-}
-
-export interface ExcludePatterns {
-  serve?: string | string[] // paths or globs
-  build: string | string[] // paths or globs
-}
+import { Options } from "./options.js"
 
 export function plugin(opts?: Options): Plugin[] {
   return [

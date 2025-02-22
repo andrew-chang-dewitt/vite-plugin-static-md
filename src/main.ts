@@ -28,7 +28,7 @@ import { plugin } from "./plugin.js"
 import type { ContextOut as Context } from "./context.js"
 
 export default plugin
-export type { Options, ExcludePatterns } from "./plugin.js"
+export type { Options, ExcludePatterns } from "./options.js"
 export type { PageOut as Page, PageData } from "./page.js"
 
 // patch Document object to include context value
