@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.4.6](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.4.5...v0.4.6) (2025-02-22)
+
+
+### Features
+
+* **debug:** add debug logging method w/ call site location tag ([#41](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/issues/41)) ([e317ad3](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/e317ad3509856aea001bbac14cf44bdecbffb3a4))
+
+
+### Bug Fixes
+
+* **ctx:** remove data that shouldn't be exposed from injected ctx obj ([84c8588](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/84c85889da20220ced3f825ad1266606997bbbd9))
+* **deps:** bump marked in the prod-dependencies-minor group ([1860bc6](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/1860bc6d966c6b535f9adf44d276fb598f29f4f6))
+* **deps:** update vite & jsdom prod dependencies ([e6a0cc7](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/e6a0cc72a6b185e4cae3478ea2ebd1f7747125e6))
+
 ## [0.4.5](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.4.4...v0.4.5) (2025-01-30)
 
 
