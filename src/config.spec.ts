@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import type { LogLevel } from "vite"
 
 import { modifyConfig } from "./config.js"
-import { provider } from "./context.js"
+import { ctx } from "./ctx.js"
 import { logger } from "./logging.js"
 
 describe("modifyConfig()", () => {
@@ -35,7 +35,7 @@ describe("modifyConfig()", () => {
 
     describe("correctly includes all md files found from root", async () => {
       const output = await modifyConfig(config)
-      const ctx = provider()
+      const _ctx = ctx().get()
 
       it("as html file entrypoints for build output", () => {
         // example project has following structure of markdown files:
@@ -61,10 +61,10 @@ describe("modifyConfig()", () => {
 
       it("as server routes for dev output", () => {
         // FIXME: this requires touching unrelated context object in test, feels v uggo
-        expect(ctx.pages).toHaveProperty("/")
-        expect(ctx.pages).toHaveProperty("/page/")
-        expect(ctx.pages).toHaveProperty("/page/nested/")
-        expect(ctx.pages).not.toHaveProperty("/not/")
+        expect(_ctx.pages).toHaveProperty("/")
+        expect(_ctx.pages).toHaveProperty("/page/")
+        expect(_ctx.pages).toHaveProperty("/page/nested/")
+        expect(_ctx.pages).not.toHaveProperty("/not/")
       })
     })
 
@@ -75,7 +75,7 @@ describe("modifyConfig()", () => {
         ],
       }
       const output = await modifyConfig(config, opts)
-      const ctx = provider()
+      const _ctx = ctx().get()
 
       it("as html entrypoints for build output", () => {
         // example project has following structure of markdown files:
@@ -111,11 +111,11 @@ describe("modifyConfig()", () => {
       it("as server routes for dev output", () => {
         // FIXME: this requires touching unrelated context object in test, feels v uggo
         // should not include exclusion
-        expect(ctx.pages).not.toHaveProperty("/excluded-always/")
+        expect(_ctx.pages).not.toHaveProperty("/excluded-always/")
         // but still include index & others
-        expect(ctx.pages).toHaveProperty("/")
-        expect(ctx.pages).toHaveProperty("/page/")
-        expect(ctx.pages).toHaveProperty("/page/nested/")
+        expect(_ctx.pages).toHaveProperty("/")
+        expect(_ctx.pages).toHaveProperty("/page/")
+        expect(_ctx.pages).toHaveProperty("/page/nested/")
       })
     })
 
@@ -124,7 +124,7 @@ describe("modifyConfig()", () => {
         excludes: ["**/*excluded*"],
       }
       const output = await modifyConfig(config, opts)
-      const ctx = provider()
+      const _ctx = ctx().get()
 
       it("and excludes matches from build output", () => {
         // example project has following structure of markdown files:
@@ -164,11 +164,11 @@ describe("modifyConfig()", () => {
       it("and from server routes for dev output", () => {
         // FIXME: this requires touching unrelated context object in test, feels v uggo
         // should not include exclusion
-        expect(ctx.pages).not.toHaveProperty("/excluded-always/")
+        expect(_ctx.pages).not.toHaveProperty("/excluded-always/")
         // but still include index & others
-        expect(ctx.pages).toHaveProperty("/")
-        expect(ctx.pages).toHaveProperty("/page/")
-        expect(ctx.pages).toHaveProperty("/page/nested/")
+        expect(_ctx.pages).toHaveProperty("/")
+        expect(_ctx.pages).toHaveProperty("/page/")
+        expect(_ctx.pages).toHaveProperty("/page/nested/")
       })
     })
 
@@ -180,7 +180,7 @@ describe("modifyConfig()", () => {
         },
       }
       const output = await modifyConfig(config, opts)
-      const ctx = provider()
+      const _ctx = ctx().get()
 
       it("excludes everything specified from build output", () => {
         // example project has following structure of markdown files:
@@ -220,11 +220,11 @@ describe("modifyConfig()", () => {
       it("only excludes patterns specified with `serve` key from dev server routes", () => {
         // FIXME: this requires touching unrelated context object in test, feels v uggo
         // should not include exclusion
-        expect(ctx.pages).not.toHaveProperty("/excluded-always/")
+        expect(_ctx.pages).not.toHaveProperty("/excluded-always/")
         // but still include index & others
-        expect(ctx.pages).toHaveProperty("/")
-        expect(ctx.pages).toHaveProperty("/page/")
-        expect(ctx.pages).toHaveProperty("/page/nested/")
+        expect(_ctx.pages).toHaveProperty("/")
+        expect(_ctx.pages).toHaveProperty("/page/")
+        expect(_ctx.pages).toHaveProperty("/page/nested/")
       })
     })
   })
