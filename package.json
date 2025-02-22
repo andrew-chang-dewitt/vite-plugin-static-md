@@ -16,13 +16,14 @@
     "CHANGELOG.md"
   ],
   "scripts": {
-    "dev": "cd example && npm run dev",
+    "dev": "tsc-watch --onSuccess \"npm run --prefix ./example/ dev\"",
     "check": "tsc --noEmit",
     "test": "vitest",
     "test:once": "vitest run",
     "coverage": "vitest run --coverage",
     "prebuild": "rm -rf dist && npm run test:once",
     "build": "tsc",
+    "watch": "tsc -w",
     "prerelease": "npm run build",
     "release": "commit-and-tag-version",
     "prepare": "husky",
@@ -57,6 +58,7 @@
     "prettier": "^3.5.1",
     "standard-version": "^9.5.0",
     "ts-todo": "^2.0.0",
+    "tsc-watch": "^6.2.1",
     "typescript": "^5.7.3",
     "vitest": "^3.0.4"
   }
