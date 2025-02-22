@@ -1,13 +1,13 @@
 import type { Plugin, UserConfig } from "vite"
 
 import { modifyConfig } from "./config.js"
+import { ctx } from "./ctx.js"
 import {
   addFileListener,
   indexMdMiddleware,
   unlinkFileListener,
 } from "./devServer.js"
 import { renderStatic } from "./html.js"
-import { provider as ctx, included } from "./context.js"
 import { Options } from "./options.js"
 
 export function plugin(opts?: Options): Plugin[] {
@@ -47,16 +47,16 @@ export function plugin(opts?: Options): Plugin[] {
 
       resolveId(src: string) {
         // sources not in pages map are skipped
-        if (!included(src)) return null
+        if (!ctx().includes(src)) return null
         // ensure sources given in pages map are resolved,
         // even if the file doesn't exist
         return src
       },
 
       async load(id: string) {
-        let _ctx = ctx()
+        let _ctx = ctx().get()
         // ids not in pages map are skipped
-        if (!included(id)) return null
+        if (!ctx().includes(id)) return null
 
         const page = _ctx.pages[id]
         const res = {

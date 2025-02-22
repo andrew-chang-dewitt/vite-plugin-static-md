@@ -14,13 +14,7 @@ import { Stats } from "fs"
 import { IncomingMessage, OutgoingHttpHeaders, ServerResponse } from "http"
 import type { Connect, PreviewServer, ViteDevServer } from "vite"
 
-import {
-  Context,
-  excluded,
-  included,
-  provider,
-  updateContext,
-} from "./context.js"
+import { ctx } from "./ctx.js"
 import { renderDyn } from "./html.js"
 import { logger } from "./logging.js"
 import { buildPage } from "./page.js"
@@ -30,16 +24,16 @@ import { parse } from "path"
 export async function addFileListener(path: string, _?: Stats) {
   logger().dbg(`file added: ${path}`)
 
-  const { root, mode, pages, paths } = provider()
+  const { root, mode, pages, paths } = ctx().get()
   const rgx = new RegExp(`^${root}.*\.md$`)
 
-  if (rgx.test(path) && !excluded(path)) {
+  if (rgx.test(path) && !ctx().excludes(path)) {
     logger().dbg("file should be included, adding...")
     // build a page object for the path
     const page = await buildPage(path, root)
     // then insert page object into Context.pages
     const key: "url" | "id" = mode === "dev" ? "url" : "id"
-    updateContext({
+    ctx().set({
       pages: {
         ...pages,
         [page[key]]: page,
@@ -52,14 +46,14 @@ export async function addFileListener(path: string, _?: Stats) {
 export async function unlinkFileListener(path: string, _?: Stats) {
   logger().dbg(`[unlinkFileListener] file unlinked: ${path}`)
 
-  const { pages, paths, root } = provider()
+  const { pages, paths, root } = ctx().get()
 
-  if (included(path)) {
+  if (ctx().includes(path)) {
     logger().dbg("[unlinkFileListener] file was included, removing...")
     const pageId = getURL(parse(path), root)
     const { [pageId]: unlinked, ...updatedPages } = pages
     const updatedPaths = paths.filter((p) => p !== path)
-    updateContext({
+    ctx().set({
       pages: updatedPages,
       paths: updatedPaths,
     })
@@ -77,7 +71,7 @@ export function indexMdMiddleware(
       return next()
     }
 
-    const { pages }: Context = provider()
+    const { pages } = ctx().get()
     const url = req.url && cleanUrl(req.url)
 
     // handle markdown pages

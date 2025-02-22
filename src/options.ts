@@ -11,10 +11,17 @@ export interface ExcludePatterns {
   build: string | string[] // paths or globs
 }
 
-export async function load(opts: Options): Promise<Options> {
+export type ResolvedOptions = Omit<Options, "htmlTemplate"> &
+  Required<Pick<Options, "htmlTemplate">>
+
+const defaults: Options = {}
+
+export async function load(opts?: Options): Promise<ResolvedOptions> {
+  const vals = opts || defaults
+
   return {
-    ...opts,
-    htmlTemplate: await loadHtmlTemplate(opts.htmlTemplate),
+    ...vals,
+    htmlTemplate: await loadHtmlTemplate(vals.htmlTemplate),
   }
 }
 

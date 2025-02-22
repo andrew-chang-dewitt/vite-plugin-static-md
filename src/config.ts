@@ -2,13 +2,15 @@ import { glob } from "fs/promises"
 import { parse, resolve } from "path"
 import type { UserConfig } from "vite"
 
-import { Mode, completeContext, initContext, updateContext } from "./context.js"
+import { init } from "./ctx.js"
+import type { Mode } from "./ctx.js"
 import {
   ExtendedLogger,
   logger as getLogger,
   replace as replaceLogger,
 } from "./logging.js"
 import { ExcludePatterns, Options } from "./main.js"
+import { load } from "./options.js"
 import { getPages } from "./page.js"
 import { getHtmlId, getPaths, getRollupInputKey } from "./path.js"
 import { dir } from "./utils.js"
@@ -20,7 +22,8 @@ export async function modifyConfig(
   opts?: Options,
   mode?: Mode,
 ): Promise<UserConfig> {
-  const ictx = await initContext(opts, mode)
+  const resolvedOptions = await load(opts)
+  const ictx = init(resolvedOptions, mode)
 
   // setup logger if not vite's default
   if (userConfig.logLevel) {
@@ -30,11 +33,11 @@ export async function modifyConfig(
   // get web root dir from config
   const root = resolveRoot(userConfig.root)
   // walk filetree at root & get absolute paths to every markdown file
-  const excludeList = await expandExcludes(opts?.excludes, ictx.mode)
+  const excluded = await expandExcludes(opts?.excludes, ictx.get().mode)
   logger.dbg("[modifyConfig] excludes list expanded to:")
-  logger.dir(excludeList)
-  const paths = await getPaths(root, excludeList)
-  const pages = await getPages(paths, root, ictx)
+  logger.dir(excluded)
+  const paths = await getPaths(root, excluded)
+  const pages = await getPages(paths, root, ictx.get())
   logger.dir(pages)
 
   const cfg = {
@@ -49,8 +52,7 @@ export async function modifyConfig(
   logger.dbg("[modifyConfig] config modified to include")
   logger.dir(cfg.build.rollupOptions)
 
-  const ctx = completeContext(ictx, root, pages, paths, excludeList)
-  updateContext(ctx)
+  ictx.complete({ root, pages, paths, excluded })
 
   return cfg
 }

@@ -4,7 +4,7 @@ import { createDirectives } from "marked-directive"
 import { parse, resolve } from "path"
 import { readdir } from "fs/promises"
 
-import { provider as ctx, providerOut as ctxOut } from "./context.js"
+import { ctx } from "./ctx.js"
 import { getInputRelativePath } from "./path.js"
 import { Page, PageData } from "./page.js"
 import { logger } from "./logging.js"
@@ -13,8 +13,8 @@ import { logger } from "./logging.js"
  * render markdown source file to static html
  */
 export async function renderStatic({ src, md, data }: Page): Promise<string> {
-  const _ctx = ctx()
-  const _ctxOut = ctxOut()
+  const _ctx = ctx().get()
+  const _ctxOut = ctx().getOut()
   const { root, htmlTemplate, cssFile } = _ctx
   // get md source as html
   const asHtml = await marked.use(createDirectives()).parse(md)
@@ -126,8 +126,8 @@ export function buildHeadTags(doc: Document, data: PageData): HTMLElement[] {
  * render markdown source file to dynamic html w/ inline script suitable for HMR
  */
 export async function renderDyn(page: Page): Promise<string> {
-  const { root, htmlTemplate, cssFile } = ctx()
-  const _ctxOut = ctxOut()
+  const { root, htmlTemplate, cssFile } = ctx().get()
+  const _ctxOut = ctx().getOut()
   const { src } = page
   logger().dbg(`[renderDyn] building dynamic html for ${src}`)
   logger().dir(page)
