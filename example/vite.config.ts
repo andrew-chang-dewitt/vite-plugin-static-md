@@ -34,4 +34,7 @@ export default {
     },
   },
   root: HTML_ROOT,
+  server: {
+    allowedHosts: ["topo"],
+  },
 } satisfies UserConfig
