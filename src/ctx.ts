@@ -1,6 +1,8 @@
+import { Marked } from "marked"
 import { logger } from "./logging.js"
 import { ResolvedOptions } from "./options.js"
 import { Page } from "./page.js"
+import { createDirectives } from "marked-directive"
 
 export { init, ctx }
 export type {
@@ -18,12 +20,13 @@ interface Base {
   paths: string[]
   pages: Record<string, Page>
   excluded: string[]
+  renderer: Marked
 }
 
 type Mode = "dev" | "build"
 
 type InitialBase = Partial<Pick<Base, "root">> &
-  Pick<Base, "cssFile" | "htmlTemplate" | "mode">
+  Pick<Base, "cssFile" | "htmlTemplate" | "mode" | "renderer">
 
 interface InitialContext extends Provider<InitialBase>, ContextCompleter {}
 
@@ -68,11 +71,22 @@ function InitialContextBuilder(base: InitialBase): InitialContext {
 // Parses options into matching context properties. Returns a function ready to
 // complete building the Context object when all properties are available.
 function init(opts: ResolvedOptions, mode?: Mode): InitialContext {
-  return InitialContextBuilder({
+  const renderer = new Marked()
+  renderer.use(createDirectives())
+  if (opts.mdExtensions) {
+    opts.mdExtensions.forEach((ext) => {
+      renderer.use(ext())
+    })
+  }
+
+  const ictx = InitialContextBuilder({
     cssFile: opts.cssFile,
     htmlTemplate: opts.htmlTemplate,
     mode: mode ?? "dev",
+    renderer,
   })
+
+  return ictx
 }
 
 if (import.meta.vitest) {

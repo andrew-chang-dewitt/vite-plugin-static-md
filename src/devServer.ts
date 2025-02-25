@@ -15,16 +15,16 @@ import { IncomingMessage, OutgoingHttpHeaders, ServerResponse } from "http"
 import type { Connect, PreviewServer, ViteDevServer } from "vite"
 
 import { ctx } from "./ctx.js"
-import { renderDyn } from "./html.js"
+import { render } from "./html.js"
 import { logger } from "./logging.js"
-import { buildPage } from "./page.js"
-import { getURL } from "./path.js"
+import { buildPage, refreshPage } from "./page.js"
+import { getHtmlId, getURL } from "./path.js"
 import { parse } from "path"
 
 export async function addFileListener(path: string, _?: Stats) {
   logger().dbg(`file added: ${path}`)
 
-  const { root, mode, pages, paths } = ctx().get()
+  const { root, pages, paths } = ctx().get()
   const rgx = new RegExp(`^${root}.*\.md$`)
 
   if (rgx.test(path) && !ctx().excludes(path)) {
@@ -32,7 +32,7 @@ export async function addFileListener(path: string, _?: Stats) {
     // build a page object for the path
     const page = await buildPage(path, root)
     // then insert page object into Context.pages
-    const key: "url" | "id" = mode === "dev" ? "url" : "id"
+    const key: "url" | "id" = ctx().isDev() ? "url" : "id"
     ctx().set({
       pages: {
         ...pages,
@@ -40,6 +40,29 @@ export async function addFileListener(path: string, _?: Stats) {
       },
       paths: [...paths, path],
     })
+  }
+}
+
+export async function changeFileListener(path: string, _?: Stats) {
+  logger().dbg(`file changed: ${path}`)
+  const { pages } = ctx().get()
+  logger().dir(pages)
+
+  if (ctx().includes(path)) {
+    logger().dbg("file included, updating page...")
+
+    // update page data on context from source
+    const { root } = ctx().get()
+    const parsed = parse(path)
+    const key = ctx().isDev() ? getURL(parsed, root) : getHtmlId(parsed)
+    const page = pages[key]
+
+    logger().dir(page)
+    const updatedPages = {
+      ...pages,
+      [key]: await refreshPage(page, root),
+    }
+    ctx().set({ pages: updatedPages })
   }
 }
 
@@ -95,7 +118,7 @@ export function indexMdMiddleware(
         // `<filename>.md?raw`, parses it w/ marked before inserting parsed
         // markdown into html template instead of loading from filesystem
         if (isDev) {
-          let html = await renderDyn(page)
+          let html = await render(page)
           // have vite apply standard html transforms
           // (hopefully this includes adding the markdown source to the module graph?)
           html = await server.transformIndexHtml(url, html, req.originalUrl)

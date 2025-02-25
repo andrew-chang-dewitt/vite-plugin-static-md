@@ -1,14 +1,20 @@
 import { readFile } from "fs/promises"
+import { MarkedExtension } from "marked"
 
 export interface Options {
   cssFile?: string // exact path only
   excludes?: string | string[] | ExcludePatterns // paths or globs
   htmlTemplate?: string // exact path only
+  mdExtensions?: Extension[]
 }
 
 export interface ExcludePatterns {
   serve?: string | string[] // paths or globs
   build: string | string[] // paths or globs
+}
+
+export interface Extension {
+  (): MarkedExtension
 }
 
 export type ResolvedOptions = Omit<Options, "htmlTemplate"> &

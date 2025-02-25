@@ -81,9 +81,12 @@ This plugin can be configured to customimze some behaviours.
 
 ```typescript
 export interface Options {
-  cssFile?: string // exact path only
+  cssFile?: string                               // exact path only
   excludes?: string | string[] | ExcludePatterns // paths or globs
-  htmlTemplate?: string // exact path only
+  htmlTemplate?: string                          // exact path only
+  renderers?: MarkedExtension[]                  // marked extension to be
+                                                 // applied in order to the
+                                                 // renderer
 }
 ```
 
@@ -119,6 +122,11 @@ export interface ExcludePatterns {
   build: string | string[] // paths or globs
 }
 ```
+
+### `Options.renderers?: MarkedExtension`
+
+To customize how the markdown source for a page is rendered, supply one or more [`MarkedExtension`](https://marked.js.org/using_advanced#options) objects.
+These will be applied to the default renderer from `marked` via [`marked.use(...)`](https://marked.js.org/using_pro#use).
 
 ## Frontmatter support:
 

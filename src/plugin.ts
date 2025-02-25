@@ -6,8 +6,9 @@ import {
   addFileListener,
   indexMdMiddleware,
   unlinkFileListener,
+  changeFileListener,
 } from "./devServer.js"
-import { renderStatic } from "./html.js"
+import { render } from "./html.js"
 import { Options } from "./options.js"
 
 export function plugin(opts?: Options): Plugin[] {
@@ -29,6 +30,8 @@ export function plugin(opts?: Options): Plugin[] {
         // files change
         server.watcher = server.watcher.on("add", addFileListener)
         server.watcher = server.watcher.on("unlink", unlinkFileListener)
+        // add filewatcher to listen for changes in markdown sources & trigger a rebuild of that page's data
+        server.watcher = server.watcher.on("change", changeFileListener)
         // custom middleware to point urls matching `pages` to their
         // markdown sources & transform those sources into index.html files
         server.middlewares.use(indexMdMiddleware(server))
@@ -60,7 +63,7 @@ export function plugin(opts?: Options): Plugin[] {
 
         const page = _ctx.pages[id]
         const res = {
-          code: await renderStatic(page),
+          code: await render(page),
         }
 
         return res

@@ -72,3 +72,19 @@ export async function buildPage(path: string, root: string): Promise<Page> {
     url,
   }
 }
+
+export async function refreshPage(page: Page, root: string): Promise<Page> {
+  const fileContents = await readFile(page.src, { encoding: "utf8" })
+  const { content: md, data: uncheckedData } = matter(fileContents)
+  const data = uncheckedData as PageData
+  // page title defaults to filename
+  if (!data.title) {
+    data.title = getInputRelativePath(parse(page.src), root)
+  }
+
+  return {
+    ...page,
+    md,
+    data,
+  }
+}

@@ -22,13 +22,13 @@ export async function modifyConfig(
   opts?: Options,
   mode?: Mode,
 ): Promise<UserConfig> {
-  const resolvedOptions = await load(opts)
-  const ictx = init(resolvedOptions, mode)
-
   // setup logger if not vite's default
   if (userConfig.logLevel) {
     logger = replaceLogger(userConfig.logLevel)
   }
+
+  const resolvedOptions = await load(opts)
+  const ictx = init(resolvedOptions, mode)
 
   // get web root dir from config
   const root = resolveRoot(userConfig.root)
