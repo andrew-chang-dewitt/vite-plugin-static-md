@@ -2,15 +2,14 @@
 import type { Document, Page } from "vite-plugin-static-md"
 import renderer from "$/renderer.js"
 
-// test using renderer built by plugin
-const text = await renderer.parse(`
-## This is a header level 2
-
-This is a paragraph with [a link](/) to nowhere. It also is preceded by a header.`)
-
 // get target ul el
 const tgt = document.querySelector("#text")!
-tgt.innerHTML = text
+// test using renderer built by plugin
+const html = renderer.parse(`
+## This is a header level 2
+
+This is a paragraph with [a link](/) to nowhere. It also is preceded by a header.`) as string
+tgt.innerHTML = html
 
 // get pages as a list of (url, data)
 const pages = (document as Document).ctx.pages
