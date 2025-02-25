@@ -25,7 +25,7 @@
  */
 
 import { plugin } from "./plugin.js"
-import type { ContextDataOut as Context } from "./ctx.js"
+import type { ContextDataOut as ContextData } from "./ctx.js"
 
 export default plugin
 export type { Options, ExcludePatterns } from "./options.js"
@@ -34,6 +34,6 @@ export type { PageOut as Page, PageData } from "./page.js"
 // patch Document object to include context value
 declare global {
   interface Document {
-    ctx: Context
+    ctx: ContextData
   }
 }

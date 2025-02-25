@@ -1,11 +1,11 @@
 import { readFile } from "fs/promises"
-import { MarkedExtension } from "marked"
+import { Marked, MarkedExtension } from "marked"
 
 export interface Options {
   cssFile?: string // exact path only
   excludes?: string | string[] | ExcludePatterns // paths or globs
   htmlTemplate?: string // exact path only
-  mdExtensions?: Extension[]
+  renderer?: Marked
 }
 
 export interface ExcludePatterns {

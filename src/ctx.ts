@@ -2,16 +2,16 @@ import { Marked } from "marked"
 import { logger } from "./logging.js"
 import { ResolvedOptions } from "./options.js"
 import { Page } from "./page.js"
-import { createDirectives } from "marked-directive"
 
 export { init, ctx }
 export type {
   Mode,
-  Out as ContextDataOut,
   Base as ContextData,
   InitialBase as ContextDataInitial,
+  Out as ContextDataOut,
 }
 
+// Data widely used to determine website structure & page information
 interface Base {
   cssFile?: string
   htmlTemplate: string
@@ -25,11 +25,15 @@ interface Base {
 
 type Mode = "dev" | "build"
 
+// Underlying data type for initial context to be completed later
 type InitialBase = Partial<Pick<Base, "root">> &
   Pick<Base, "cssFile" | "htmlTemplate" | "mode" | "renderer">
 
+// Initial context object w/ methods for reading & completing the underlying
+// data
 interface InitialContext extends Provider<InitialBase>, ContextCompleter {}
 
+// Provides a readonly copy of a data object, T
 interface Provider<T> {
   get(): Readonly<T>
 }
@@ -44,17 +48,21 @@ function initProvidable(ictx: () => InitialBase): Provider<InitialBase> {
   }
 }
 
+// Completes an initial context object by merging it with the given data
 interface ContextCompleter {
   complete(rest: Omit<Base, keyof Omit<InitialBase, "root">>): Context
 }
 
 function completable(ictx: Provider<InitialBase>): ContextCompleter {
   return {
-    complete: (rest) =>
-      ContextBuilder({
+    complete: (rest) => {
+      _createCtx({
         ...ictx.get(),
         ...rest,
-      }),
+      })
+
+      return ContextBuilder()
+    },
   }
 }
 
@@ -71,19 +79,11 @@ function InitialContextBuilder(base: InitialBase): InitialContext {
 // Parses options into matching context properties. Returns a function ready to
 // complete building the Context object when all properties are available.
 function init(opts: ResolvedOptions, mode?: Mode): InitialContext {
-  const renderer = new Marked()
-  renderer.use(createDirectives())
-  if (opts.mdExtensions) {
-    opts.mdExtensions.forEach((ext) => {
-      renderer.use(ext())
-    })
-  }
-
   const ictx = InitialContextBuilder({
     cssFile: opts.cssFile,
     htmlTemplate: opts.htmlTemplate,
     mode: mode ?? "dev",
-    renderer,
+    renderer: opts.renderer || new Marked(),
   })
 
   return ictx
@@ -98,6 +98,8 @@ if (import.meta.vitest) {
   })
 }
 
+// Context object w/ methods for operating on underlying data, including
+// getting copies of different shapes, updating the data, & checking values
 interface Context
   extends InExclusionChecker,
     Provider<Base>,
@@ -106,6 +108,7 @@ interface Context
   getOut: Provider<Out>["get"]
 }
 
+// Get an instance of the Context object w/ methods for operating on its data
 function ctx(): Context {
   if (!!!_ctx)
     throw new TypeError(
@@ -113,11 +116,10 @@ function ctx(): Context {
         "completed before attempting to access Context object.",
     )
 
-  return ContextBuilder(_ctx)
+  return ContextBuilder()
 }
 
-function ContextBuilder(base: Base): Context {
-  _createCtx(base)
+function ContextBuilder(): Context {
   const providerOut = outProvidable(_getCtx)
   const provider = ctxProvidable(_getCtx)
   const updater = updatable(_getCtx)
@@ -141,6 +143,7 @@ function ctxProvidable(ctx: () => Base): Provider<Base> {
   }
 }
 
+// A version of the Context data object with potentially sensitive data omitted
 type Out = Pick<Base, "pages">
 
 function outProvidable(ctx: () => Base): Provider<Out> {
@@ -151,6 +154,7 @@ function outProvidable(ctx: () => Base): Provider<Out> {
   }
 }
 
+// Update an underlying data object, T, w/ new values provided for given fields
 interface Updater<T> {
   set(values: Partial<T>): T
 }
@@ -164,6 +168,7 @@ function updatable(ctx: () => Base): Updater<Base> {
   }
 }
 
+// Check if in Dev mode
 interface DevChecker {
   isDev(): boolean
 }
@@ -176,6 +181,7 @@ function devCheckable(ctx: () => Base): DevChecker {
   }
 }
 
+// Check if given id is included or excluded from forming a Page
 interface InExclusionChecker {
   includes(id: unknown): boolean
   excludes(id: unknown): boolean
