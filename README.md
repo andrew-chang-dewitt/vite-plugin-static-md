@@ -84,9 +84,9 @@ export interface Options {
   cssFile?: string                               // exact path only
   excludes?: string | string[] | ExcludePatterns // paths or globs
   htmlTemplate?: string                          // exact path only
-  renderers?: MarkedExtension[]                  // marked extension to be
-                                                 // applied in order to the
-                                                 // renderer
+  renderer?: Marked                              // marked instance to be used
+                                                 // instead of default bare
+                                                 // Marked class
 }
 ```
 
@@ -123,10 +123,9 @@ export interface ExcludePatterns {
 }
 ```
 
-### `Options.renderers?: MarkedExtension`
+### `Options.renderer?: Marked`
 
-To customize how the markdown source for a page is rendered, supply one or more [`MarkedExtension`](https://marked.js.org/using_advanced#options) objects.
-These will be applied to the default renderer from `marked` via [`marked.use(...)`](https://marked.js.org/using_pro#use).
+To customize how the markdown source for a page is rendered, supply an instance of `Marked`. This allows setting up custom extensions before passing the renderer to the plugin, while retaining the renderer for local use as well.
 
 ## Frontmatter support:
 
