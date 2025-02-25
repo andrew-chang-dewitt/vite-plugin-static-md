@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.5.0](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.4.7...v0.5.0) (2025-02-25)
+
+
+### ⚠ BREAKING CHANGES
+
+* **custom-rendering:** invert control on defining renderer, making it accessible to user too
+
+### Features
+
+* **custom-rendering:** invert control on defining renderer, making it accessible to user too ([dc6629a](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/dc6629abd1535a684988da80a632ae7ca7a43296))
+
 ## [0.4.7](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.4.6...v0.4.7) (2025-02-25)
 
 
