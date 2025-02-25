@@ -1,6 +1,7 @@
 @import "./colors.css";
 @import "./fonts.css";
 @import "./layout.css";
+@import "./code.css";
 
 /*
 @import '~prismjs/themes/prism-tomorrow'

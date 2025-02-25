@@ -14,13 +14,15 @@
     "semi": false
   },
   "dependencies": {
+    "highlight.js": "^11.11.1",
+    "marked-highlight": "^2.2.1",
     "vite": "^6.0.9"
   },
   "devDependencies": {
     "@types/jsdom": "^21.1.7",
     "@types/node": "^22.10.1",
     "prettier": "^3.4.2",
-    "vite-plugin-static-md": "file:../",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vite-plugin-static-md": "file:../"
   }
 }
