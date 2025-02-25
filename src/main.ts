@@ -25,7 +25,7 @@
  */
 
 import { plugin } from "./plugin.js"
-import type { ContextOut as Context } from "./context.js"
+import type { ContextDataOut as Context } from "./ctx.js"
 
 export default plugin
 export type { Options, ExcludePatterns } from "./options.js"

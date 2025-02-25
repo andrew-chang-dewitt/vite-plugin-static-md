@@ -8,7 +8,7 @@ import {
   getRollupInputKey,
   getURL,
 } from "./path.js"
-import { InitialContext } from "./context.js"
+import { ContextDataInitial as InitialContext } from "./ctx.js"
 
 export interface Page {
   src: string

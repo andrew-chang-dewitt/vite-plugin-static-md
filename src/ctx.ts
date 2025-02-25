@@ -3,6 +3,12 @@ import { ResolvedOptions } from "./options.js"
 import { Page } from "./page.js"
 
 export { init, ctx }
+export type {
+  Mode,
+  Out as ContextDataOut,
+  Base as ContextData,
+  InitialBase as ContextDataInitial,
+}
 
 interface Base {
   cssFile?: string
@@ -14,7 +20,7 @@ interface Base {
   excluded: string[]
 }
 
-export type Mode = "dev" | "build"
+type Mode = "dev" | "build"
 
 type InitialBase = Partial<Pick<Base, "root">> &
   Pick<Base, "cssFile" | "htmlTemplate" | "mode">
