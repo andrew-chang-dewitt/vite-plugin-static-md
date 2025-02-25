@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.4.7](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.4.6...v0.4.7) (2025-02-25)
+
+
+### Features
+
+* **renderer:** allow customizing marked render behaviour via extensions in options ([ca27483](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/ca27483b8066b62b86d5ad54fe4997c867b545f2))
+
+
+### Bug Fixes
+
+* **deps:** bump jsdom in the prod-dependencies-major group ([a0335d2](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/a0335d28df54651fd14c712391e479bdb976ef6c))
+
 ## [0.4.6](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.4.5...v0.4.6) (2025-02-22)
 
 
