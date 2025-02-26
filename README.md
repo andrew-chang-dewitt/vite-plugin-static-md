@@ -34,9 +34,6 @@ During bundling, that means that this:
 {VITE_ROOT}
 ├── index.html
 ├── main.ts
-├── other
-│   ├── index.html
-│   └── main.ts
 └── page
     ├── index.md
     └── nested.md
@@ -45,10 +42,8 @@ During bundling, that means that this:
 will be transformed to this:
 
 ```
-{VITE_ROOT}/dist/
+{VITE_ROOT}/dist
 ├── index.html
-├── other
-│   └── index.html
 └── page
     ├── index.html
     └── nested
@@ -60,22 +55,72 @@ given the following `vite.config.js`:
 ```javascript
 export default {
   appType: "mpa",
-  build: {
-    rollupOptions: {
-      // specifiy any non-markdown entry points here:
-      input: {
-        main: resolve(__dirname, "./index.html"),
-        other: resolve(__dirname, "./other/index.html")
-      },
-    },
-  },
   plugins: [staticMd()],
-} satisfies UserConfig
+}
+```
+
+### HTML output
+
+The html rendered from the markdown is injected into the following html template (or any base template given, if specified via [Options.htmlTemplate](#optionshtmltemplate-string)):
+
+```html
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <body>
+    <article id="markdown-target">
+      <!-- markdown gets injected here -->
+    </article>
+  </body>
+</html>
+```
+
+Additionally, directories can have "local" templates, applying to all markdown pages in that directory, as well as those descending from it so long as there isn't another template closer to it when traversing up the filetree. To make a local template available for discovery, it simply needs to be an html file named `template.html` in a sub directory of the `vite` root.
+
+This means that given the following filetree of markdown sources & local templates:
+
+```
+{VITE_ROOT}
+├── index.md
+└── page
+    ├── template.html
+    ├── index.md
+    ├── child1
+    │   ├── template.html
+    │   ├── index.md
+    │   └── sibling.md
+    └── child2
+        ├── index.md
+        └── sibling.md
+```
+
+The following output would be generated, with each html file using the template shown:
+
+```
+{VITE_ROOT}/dist
+├── index.html             // index.md injected into default template
+└── page
+    ├── index.html         // page/index.md injected into
+    │                      //   page/template.html
+    ├── child1
+    │   ├── index.html     // page/child1/index.md into
+    │   │                  //   page/child1/template.html
+    │   └── sibling
+    │       └── index.html // page/child1/sibling.md into
+    │                      //   page/child1/template.html
+    └── child2
+        ├── index.html     // page/child2/index.md into
+        │                  //   page/template.html
+        └── sibling
+            └── index.html // page/child2/sibling.md into
+                           //   page/template.html
 ```
 
 ## Options:
 
-This plugin can be configured to customimze some behaviours.
+This plugin can be configured to customize some behaviours.
 
 ### Options type:
 
@@ -93,19 +138,7 @@ export interface Options {
 ### `Options.htmlTemplate?: string`
 
 The file given to htmlTemplate must specify where the html transposed from your markdown sources should go using an element with `id="markdown-target"`.
-For example, the default html template this plugin uses when no template file is given looks like this:
-
-```html
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  </head>
-  <body>
-    <article id="markdown-target"></article>
-  </body>
-</html>
-```
+For an example, refer to the default html template, [shown above](#html-output)
 
 ### `Options.cssFile?: string`
 
