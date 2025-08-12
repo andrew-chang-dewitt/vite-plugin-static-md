@@ -42,10 +42,10 @@
   },
   "dependencies": {
     "gray-matter": "^4.0.3",
-    "jsdom": "^26.0.0",
+    "jsdom": "^26.1.0",
     "marked": "^15.0.7",
     "marked-directive": "^1.0.7",
-    "yaml": "^2.7.0"
+    "yaml": "^2.8.1"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.7.1",
