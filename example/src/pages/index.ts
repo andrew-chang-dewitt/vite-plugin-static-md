@@ -5,11 +5,14 @@ import renderFn from "$/renderer.js"
 // get target ul el
 const tgt = document.querySelector("#text")!
 // test using renderer built by plugin
-const html = (await renderFn(`
+renderFn(`
 ## This is a header level 2
 
-This is a paragraph with [a link](/) to nowhere. It also is preceded by a header.`)) as string
-tgt.innerHTML = html
+This is a paragraph with [a link](/) to nowhere. It also is preceded by a header.`).then(
+  (html) => {
+    tgt.innerHTML = html
+  },
+)
 
 // get pages as a list of (url, data)
 const pages = (document as Document).ctx.pages
