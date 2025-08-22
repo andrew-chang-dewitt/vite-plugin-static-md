@@ -1,14 +1,14 @@
 /// A POC of how to use the context object in dev to dynamically build lists of pages
 import type { Document, Page } from "vite-plugin-static-md"
-import renderer from "$/renderer.js"
+import renderFn from "$/renderer.js"
 
 // get target ul el
 const tgt = document.querySelector("#text")!
 // test using renderer built by plugin
-const html = renderer.parse(`
+const html = (await renderFn(`
 ## This is a header level 2
 
-This is a paragraph with [a link](/) to nowhere. It also is preceded by a header.`) as string
+This is a paragraph with [a link](/) to nowhere. It also is preceded by a header.`)) as string
 tgt.innerHTML = html
 
 // get pages as a list of (url, data)

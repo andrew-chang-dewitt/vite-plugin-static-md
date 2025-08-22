@@ -3,7 +3,7 @@ import type { UserConfig } from "vite"
 
 import { default as staticMd } from "vite-plugin-static-md"
 
-import renderer from "./src/renderer.js"
+import renderFn from "./src/renderer.js"
 
 const __dirname = import.meta.dirname
 
@@ -30,7 +30,7 @@ export default {
       },
       cssFile: resolve(SRC_ROOT, "styles/index.css"),
       htmlTemplate: resolve(SRC_ROOT, "md-template.html"),
-      renderer,
+      renderFn,
     }),
   ],
   resolve: {

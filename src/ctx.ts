@@ -1,6 +1,6 @@
 import { Marked } from "marked"
 import { logger } from "./logging.js"
-import { ResolvedOptions } from "./options.js"
+import { RenderFn, ResolvedOptions } from "./options.js"
 import { Page } from "./page.js"
 
 export { init, ctx }
@@ -20,14 +20,14 @@ interface Base {
   paths: string[]
   pages: Record<string, Page>
   excluded: string[]
-  renderer: Marked
+  renderFn: RenderFn // customize rendering of md pages
 }
 
 type Mode = "dev" | "build"
 
 // Underlying data type for initial context to be completed later
 type InitialBase = Partial<Pick<Base, "root">> &
-  Pick<Base, "cssFile" | "htmlTemplate" | "mode" | "renderer">
+  Pick<Base, "cssFile" | "htmlTemplate" | "mode" | "renderFn">
 
 // Initial context object w/ methods for reading & completing the underlying
 // data
@@ -79,11 +79,20 @@ function InitialContextBuilder(base: InitialBase): InitialContext {
 // Parses options into matching context properties. Returns a function ready to
 // complete building the Context object when all properties are available.
 function init(opts: ResolvedOptions, mode?: Mode): InitialContext {
+  let renderFn: RenderFn
+
+  if (!opts.renderFn) {
+    const marked = new Marked()
+    renderFn = async (md, _) => await marked.parse(md)
+  } else {
+    renderFn = opts.renderFn
+  }
+
   const ictx = InitialContextBuilder({
     cssFile: opts.cssFile,
     htmlTemplate: opts.htmlTemplate,
     mode: mode ?? "dev",
-    renderer: opts.renderer || new Marked(),
+    renderFn,
   })
 
   return ictx

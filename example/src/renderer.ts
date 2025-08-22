@@ -2,7 +2,9 @@ import hljs from "highlight.js"
 import { Marked, MarkedExtension } from "marked"
 import { createDirectives } from "marked-directive"
 import { markedHighlight } from "marked-highlight"
+import { Page } from "vite-plugin-static-md"
 
+export default renderFn
 export type ExtBuilder = () => MarkedExtension
 
 function makeRenderer(extensions?: ExtBuilder[]): Marked {
@@ -30,5 +32,8 @@ function codeHighlighter() {
 }
 
 const mdExtensions = [codeHighlighter]
+const renderer = makeRenderer(mdExtensions)
 
-export default makeRenderer(mdExtensions)
+async function renderFn(md: string, _: Page): Promise<string> {
+  return await renderer.parse(md)
+}

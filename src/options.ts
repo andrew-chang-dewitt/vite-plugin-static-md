@@ -1,28 +1,36 @@
 import { readFile } from "fs/promises"
-import { Marked, MarkedExtension } from "marked"
+import { MarkedExtension } from "marked"
+import { Page } from "./page.js"
 
-export interface Options {
+export { load }
+export type { ExcludePatterns, Extension, Options, RenderFn, ResolvedOptions }
+
+interface RenderFn {
+  (md: string, page?: Page): Promise<string>
+}
+
+interface Options {
   cssFile?: string // exact path only
   excludes?: string | string[] | ExcludePatterns // paths or globs
   htmlTemplate?: string // exact path only
-  renderer?: Marked
+  renderFn?: RenderFn // customize rendering of md pages
 }
 
-export interface ExcludePatterns {
+interface ExcludePatterns {
   serve?: string | string[] // paths or globs
   build: string | string[] // paths or globs
 }
 
-export interface Extension {
+interface Extension {
   (): MarkedExtension
 }
 
-export type ResolvedOptions = Omit<Options, "htmlTemplate"> &
+type ResolvedOptions = Omit<Options, "htmlTemplate"> &
   Required<Pick<Options, "htmlTemplate">>
 
 const defaults: Options = {}
 
-export async function load(opts?: Options): Promise<ResolvedOptions> {
+async function load(opts?: Options): Promise<ResolvedOptions> {
   const vals = opts || defaults
 
   return {
