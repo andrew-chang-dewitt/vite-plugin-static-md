@@ -10,11 +10,12 @@ import { logger } from "./logging.js"
 /**
  * render markdown source file to static html
  */
-export async function render({ src, md, data }: Page): Promise<string> {
+export async function render(page: Page): Promise<string> {
   const _ctxOut = ctx().getOut()
-  const { root, htmlTemplate, cssFile, renderer } = ctx().get()
+  const { src, md, data } = page
+  const { root, htmlTemplate, cssFile, renderFn } = ctx().get()
   // get md source as html
-  const asHtml = await renderer.parse(md)
+  const asHtml = await renderFn(md, page)
   // get sibling files w/ same name, but different extensions
   const path = parse(src)
   let imports: string[] = []
