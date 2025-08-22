@@ -34,6 +34,6 @@ function codeHighlighter() {
 const mdExtensions = [codeHighlighter]
 const renderer = makeRenderer(mdExtensions)
 
-async function renderFn(md: string, _: Page): Promise<string> {
+async function renderFn(md: string, _?: Page): Promise<string> {
   return await renderer.parse(md)
 }
