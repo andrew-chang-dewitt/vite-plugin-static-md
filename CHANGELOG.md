@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.5.2](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.5.1...v0.5.2) (2025-08-22)
+
+
+### Features
+
+* **ctx_rendering:** enable renderer to be aware of page data ([95e9fff](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/95e9fff2d0226a277a5603460d4caf643fd6ea3d))
+
 ## [0.5.1](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.5.0...v0.5.1) (2025-08-12)
 
 
