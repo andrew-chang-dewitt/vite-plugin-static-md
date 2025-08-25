@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.5.4](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.5.3...v0.5.4) (2025-08-25)
+
+
+### Features
+
+* **renderFn:** now returns map of target elements ([a835c75](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/a835c75859f2e299fb1f762a3afa8207d08d9c2c))
+
 ## [0.5.3](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.5.2...v0.5.3) (2025-08-22)
 
 
