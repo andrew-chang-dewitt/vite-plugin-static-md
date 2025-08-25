@@ -9,8 +9,8 @@ renderFn(`
 ## This is a header level 2
 
 This is a paragraph with [a link](/) to nowhere. It also is preceded by a header.`).then(
-  (html) => {
-    tgt.innerHTML = html
+  (els) => {
+    tgt.innerHTML = els["main-content"]
   },
 )
 

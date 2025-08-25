@@ -34,6 +34,7 @@ function codeHighlighter() {
 const mdExtensions = [codeHighlighter]
 const renderer = makeRenderer(mdExtensions)
 
-async function renderFn(md: string, _?: Page): Promise<string> {
-  return await renderer.parse(md)
+async function renderFn(md: string, _?: Page): Promise<Record<string, string>> {
+  const main = await renderer.parse(md)
+  return { "main-content": main }
 }
