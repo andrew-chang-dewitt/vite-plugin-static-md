@@ -43,7 +43,7 @@
   "dependencies": {
     "gray-matter": "^4.0.3",
     "jsdom": "^26.1.0",
-    "marked": "^15.0.7",
+    "marked": "^16.2.0",
     "marked-directive": "^1.0.7",
     "yaml": "^2.8.1"
   },
