@@ -83,7 +83,9 @@ function init(opts: ResolvedOptions, mode?: Mode): InitialContext {
 
   if (!opts.renderFn) {
     const marked = new Marked()
-    renderFn = async (md, _) => await marked.parse(md)
+    renderFn = async (md, _) => {
+      return { "main-content": await marked.parse(md) }
+    }
   } else {
     renderFn = opts.renderFn
   }

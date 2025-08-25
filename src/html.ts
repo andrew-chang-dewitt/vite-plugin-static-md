@@ -14,8 +14,8 @@ export async function render(page: Page): Promise<string> {
   const _ctxOut = ctx().getOut()
   const { src, md, data } = page
   const { root, htmlTemplate, cssFile, renderFn } = ctx().get()
-  // get md source as html
-  const asHtml = await renderFn(md, page)
+  // get md source & page derived elements as html
+  const elements = await renderFn(md, page)
   // get sibling files w/ same name, but different extensions
   const path = parse(src)
   let imports: string[] = []
@@ -33,13 +33,19 @@ export async function render(page: Page): Promise<string> {
 
   // create mock dom for html manipulation
   const document = createDocument(htmlTemplate, cssFile)
-  // get target node for markdown content insertion
-  const targetNode = document.querySelector("#markdown-target")
-  if (targetNode == null) {
-    throw TypeError(
-      'HTML template must include an element with the id "markdown-target".',
-    )
+  for (let el in elements) {
+    // get target node for content insertion
+    const targetNode = document.querySelector(`#${el}`)
+    // guard against missing target in template
+    if (targetNode == null) {
+      throw TypeError(
+        `HTML template must include an element with the id "${el}".`,
+      )
+    }
+    // insert content at target
+    targetNode.innerHTML = elements[el]
   }
+
   // get body node for css script insertion
   const body = document.querySelector("body")!
   // scrub non-output data from context output
@@ -66,7 +72,6 @@ import "/${getInputRelativePath(parse(src), root)}?raw"`
       : ""
   }`
 
-  targetNode.innerHTML = asHtml
   body.appendChild(scriptTag)
 
   // get head node for frontmatter metadata insertion

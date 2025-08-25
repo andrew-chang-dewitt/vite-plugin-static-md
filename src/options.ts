@@ -6,7 +6,7 @@ export { load }
 export type { ExcludePatterns, Extension, Options, RenderFn, ResolvedOptions }
 
 interface RenderFn {
-  (md: string, page?: Page): Promise<string>
+  (md: string, page?: Page): Promise<Record<string, string>>
 }
 
 interface Options {
@@ -53,7 +53,7 @@ const DEFAULT_HTML_TEMPLATE = `\
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   </head>
   <body>
-    <article id="markdown-target"></article>
+    <article id="main-content"></article>
   </body>
 </html>
 `
