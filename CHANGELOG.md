@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.5.5](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.5.4...v0.5.5) (2025-08-26)
+
+
+### Features
+
+* **renderFn:** allow render access to ctx obj ([40b9e03](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/40b9e03b42fd970b13fd3168a80b025018d953dd))
+
 ## [0.5.4](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.5.3...v0.5.4) (2025-08-25)
 
 
