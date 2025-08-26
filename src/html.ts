@@ -15,7 +15,7 @@ export async function render(page: Page): Promise<string> {
   const { src, md, data } = page
   const { root, htmlTemplate, cssFile, renderFn } = ctx().get()
   // get md source & page derived elements as html
-  const elements = await renderFn(md, page)
+  const elements = await renderFn(md, _ctxOut, page)
   // get sibling files w/ same name, but different extensions
   const path = parse(src)
   let imports: string[] = []

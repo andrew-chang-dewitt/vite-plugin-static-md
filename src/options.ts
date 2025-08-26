@@ -1,12 +1,17 @@
 import { readFile } from "fs/promises"
 import { MarkedExtension } from "marked"
 import { Page } from "./page.js"
+import { ContextDataOut } from "./ctx.js"
 
 export { load }
 export type { ExcludePatterns, Extension, Options, RenderFn, ResolvedOptions }
 
 interface RenderFn {
-  (md: string, page?: Page): Promise<Record<string, string>>
+  (
+    md: string,
+    ctx?: ContextDataOut,
+    page?: Page,
+  ): Promise<Record<string, string>>
 }
 
 interface Options {
