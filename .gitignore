@@ -16,6 +16,7 @@ dist-ssr
 *.local
 vite-plugin-static-md-*.tgz
 BODY.md
+*.tsbuildinfo
 
 # Editor directories and files
 .vscode/*

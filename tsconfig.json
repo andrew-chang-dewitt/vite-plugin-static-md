@@ -20,7 +20,8 @@
     "declarationMap": true,
     "sourceMap": true,
     // "inlineSourceMap": true,
-    "outDir": "./dist",
+    "rootDir": "./src",
+    "outDir": "dist",
     "noEmitOnError": true,
 
     /* Interop Constraints */
