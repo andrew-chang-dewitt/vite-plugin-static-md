@@ -25,7 +25,7 @@
     "test": "vitest",
     "test:once": "vitest run",
     "coverage": "vitest run --coverage",
-    "prebuild": "rm -rf dist && npm run test:once",
+    "prebuild": "rm -rf dist tsconfig.tsbuildinfo && npm run test:once",
     "build": "tsc",
     "watch": "tsc -w",
     "prerelease": "npm run build",

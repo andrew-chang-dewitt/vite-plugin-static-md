@@ -18,5 +18,4 @@ jobs:
           node-version: 24.x
           registry-url: https://registry.npmjs.org/
       - run: npm ci
-      - run: npm run build
-      - run: npm publish
+      - run: [ -d "dist" ] && [ -n "$(ls -A dist)" ] && npm run publish
