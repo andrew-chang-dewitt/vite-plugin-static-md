@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.6.0](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.5.5...v0.6.0) (2026-04-09)
+
+
+### ⚠ BREAKING CHANGES
+
+* include vite 7.0 support & drop for 5.4
+
+### Features
+
+* include vite 7.0 support & drop for 5.4 ([48f1884](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/48f1884a12fe8bf9e2db2ce562b89dc62d20d4d2))
+
 ## [0.5.5](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.5.4...v0.5.5) (2025-08-26)
 
 
