@@ -4,6 +4,10 @@
   "author": "Andrew Chang-DeWitt",
   "license": "MIT",
   "homepage": "https://github.com/andrew-chang-dewitt/vite-plugin-static-md#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andrew-chang-dewitt/vite-plugin-static-md.git"
+  },
   "bugs": {
     "url": "https://github.com/andrew-chang-dewitt/vite-plugin-static-md/issues"
   },
