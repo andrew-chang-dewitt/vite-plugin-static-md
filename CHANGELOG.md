@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.6.2](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.6.1...v0.6.2) (2026-04-10)
+
+
+### Features
+
+* **deps:** add vite 8.x support ([0ca4937](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/0ca49372fa37b69f187f1fc0dc0aa0ea18b8eb96))
+
+
+### Bug Fixes
+
+* **build:** clean .tsbuildinfo files in prebuild ([1b240d9](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/1b240d9336ea149b62980ab3acebd892229a0539))
+
 ## [0.6.1](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.6.0...v0.6.1) (2026-04-09)
 
 
