@@ -1,7 +1,7 @@
 import { Marked } from "marked"
 import { logger } from "./logging.js"
 import { RenderFn, ResolvedOptions } from "./options.js"
-import { Page } from "./page.js"
+import { Page, PageOut, pageOut } from "./page.js"
 
 export { init, ctx }
 export type {
@@ -154,13 +154,21 @@ function ctxProvidable(ctx: () => Base): Provider<Base> {
   }
 }
 
-// A version of the Context data object with potentially sensitive data omitted
-type Out = Pick<Base, "pages">
+// A version of the Context data object with potentially sensitive data omitted.
+// Pages are reduced to their output shape (`data` & `url` only) so the full
+// markdown source & internal ids aren't serialized into every rendered page —
+// serializing the full `pages` record into each page is O(n^2) & OOMs on large
+// sites.
+type Out = { pages: Record<string, PageOut> }
 
 function outProvidable(ctx: () => Base): Provider<Out> {
   return {
     get() {
-      return { pages: ctx().pages }
+      const pages: Record<string, PageOut> = {}
+      for (const [key, page] of Object.entries(ctx().pages)) {
+        pages[key] = pageOut(page)
+      }
+      return { pages }
     },
   }
 }
