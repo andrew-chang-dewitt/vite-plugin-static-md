@@ -1,4 +1,4 @@
-import { JSDOM } from "jsdom"
+import { parseHTML } from "linkedom"
 import { parse, resolve } from "path"
 import { readdir } from "fs/promises"
 
@@ -154,8 +154,9 @@ function normalizeHtml(code: string): string {
  * link tag if css file is given
  */
 function createDocument(htmlTemplate: string, cssFile?: string): Document {
-  const DOM = new JSDOM(htmlTemplate)
-  const document = DOM.window.document
+  // linkedom's document is structurally a DOM Document but nominally its own
+  // type; cast to the lib.dom Document so downstream DOM APIs typecheck
+  const document = parseHTML(htmlTemplate).document as unknown as Document
   // get body node for css script insertion
   const body = document.querySelector("body")!
 

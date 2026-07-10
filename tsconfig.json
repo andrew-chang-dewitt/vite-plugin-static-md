@@ -5,7 +5,9 @@
 
     /* Language and Environment */
     "target": "es2020",
-    "lib": ["ES2020"],
+    // DOM added for type declarations only (Document/HTMLElement APIs used in
+    // html.ts); linkedom provides the runtime, no browser globals are used
+    "lib": ["ES2020", "DOM"],
     // enable import.meta.vitest flag for in source tests
     "types": ["vitest/importMeta"],
     "useDefineForClassFields": true,
