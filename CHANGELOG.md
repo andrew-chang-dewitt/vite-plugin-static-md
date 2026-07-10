@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.6.4](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.6.3...v0.6.4) (2026-07-10)
+
+
+### Bug Fixes
+
+* **build:** limit build ctx to avoid o(n^2) mem growth ([df27081](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/df27081f9968fdcf7cc251de5da8afa58181467b))
+* **deps-security:** patch per npm audit ([6feb440](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/6feb4404191925dc7a465bcfb19e815a414f7560))
+* **deps:** upgrade marked to 18.0.6 ([c61802b](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/c61802b7c1f9ecec5e1c04e35921ad0b07f80fb7))
+* **deps:** yaml 2.8.3=>2.9.0, jsdom 29.0.2=>29.1.1 ([4a54b3f](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/4a54b3fc21bdda40b3c99da0b2d7f6336feccb33))
+
 ## [0.6.3](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.5.5...v0.6.3) (2026-04-10)
 
 ### ⚠ BREAKING CHANGES
