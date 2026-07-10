@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.6.5](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.6.4...v0.6.5) (2026-07-10)
+
+
+### Bug Fixes
+
+* **deps:** swap jsdom->linkedom to lower mem usage ([0a2da2b](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/commit/0a2da2be542418fa3041bb51cbcdf3e0de1b701c))
+
 ## [0.6.4](https://github.com/andrew-chang-dewitt/vite-plugin-static-md/compare/v0.6.3...v0.6.4) (2026-07-10)
 
 
